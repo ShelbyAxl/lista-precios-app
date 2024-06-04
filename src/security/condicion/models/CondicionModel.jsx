@@ -5,7 +5,7 @@ export function CondicionModel() {
     IdTipoCondicionOK: { type: String },
     IdTipoOperadorOK: { type: String },
     Valor: { type: String },
-    Secuencia: { type: String },
+    Secuecia: { type: String },
     detail_row: getDetailRow(),
   };
   return Institute;

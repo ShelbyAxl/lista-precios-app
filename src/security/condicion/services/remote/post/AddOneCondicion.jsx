@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export function addOneCondicion(ids, condicion) {
-  console.log(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}/condicion_det`);          
+  console.log("res",`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}/condicion_det`);          
   return new Promise((resolve, reject) => {
     axios
       .post(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}/condicion_det`, condicion)
@@ -16,7 +16,7 @@ export function addOneCondicion(ids, condicion) {
           console.error(
             "<<ERROR>> <<NO>> se ejecuto la API <<AddOneCondicion>> de forma correcta",
             data
-          );-
+          );
           reject(data);
         }
       })

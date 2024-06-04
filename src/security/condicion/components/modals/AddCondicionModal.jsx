@@ -50,13 +50,13 @@ const AddCondicionModal = ({
       IdTipoCondicionOK: "",
       IdTipoOperadorOK: "",
       Valor: "",
-      Secuencia: "",
+      Secuecia: "",
     },
     validationSchema: Yup.object({
       IdTipoCondicionOK: Yup.string().required("Campo requerido"),
       IdTipoOperadorOK: Yup.string().required("Campo requerido"),
       Valor: Yup.string().required("Campo requerido"),
-      Secuencia: Yup.string().required("Campo requerido"),
+      Secuecia: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
       //FIC: mostramos el Loading.
@@ -162,16 +162,16 @@ const AddCondicionModal = ({
             }
           />
           <TextField
-            id="Secuencia"
-            label="Secuencia*"
-            value={formik.values.Secuencia}
+            id="Secuecia"
+            label="Secuecia*"
+            value={formik.values.Secuecia}
             {...commonTextFieldProps}
             error={
-              formik.touched.Secuencia &&
-              Boolean(formik.errors.Secuencia)
+              formik.touched.Secuecia &&
+              Boolean(formik.errors.Secuecia)
             }
             helperText={
-              formik.touched.Secuencia && formik.errors.Secuencia
+              formik.touched.Secuecia && formik.errors.Secuecia
             }
           />
         </DialogContent>

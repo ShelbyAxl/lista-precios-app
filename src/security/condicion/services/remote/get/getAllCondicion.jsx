@@ -12,6 +12,7 @@ export function getAllCondicion() {
             return {
               IdTipoCondicionOK: condicion.IdTipoCondicionOK,
               IdTipoOperadorOK: condicion.IdTipoOperadorOK,
+              Valor: condicion.Valor,
               Secuecia: condicion.Secuecia,
             };
           })
