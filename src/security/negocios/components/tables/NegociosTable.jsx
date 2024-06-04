@@ -1,91 +1,118 @@
-//FIC: React
 import React, { useEffect, useMemo, useState } from "react";
-//FIC: Material UI
-import { MaterialReactTable } from "material-react-table";
-import { Box, Stack, Tooltip, Button, IconButton, Dialog } from "@mui/material";
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+} from "material-react-table";
+import { Box, Stack, Tooltip, IconButton, Dialog } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
-//FIC: DB
-//import NegociosStaticData from '../../../../../db/security/json/Negocios/NegociosData';
 import { getAllNegocios } from "../../services/remote/get/getAllNegocios";
-//FIC: Modals
 import AddNegocioModal from "../modals/AddNegocioModal";
-//FIC: Columns Table Definition.
-const NegociosColumns = [
-  {
-    accessorKey: "IdNegocioOK",
-    header: "ID NEGOCIO OK",
-    size: 150, //small column
-  },
-];
-//FIC: Table - FrontEnd.
-const NegociosTable = () => {
-  //FIC: controlar el estado del indicador (loading).
-  const [loadingTable, setLoadingTable] = useState(true);
 
-  //FIC: controlar el estado de la data de Institutos.
+const NegociosTable = () => {
+  const [loadingTable, setLoadingTable] = useState(true);
   const [NegociosData, setNegociosData] = useState([]);
-  //FIC: controlar el estado que muesta u oculta la modal de nuevo Instituto.
+  const [rowSelection, setRowSelection] = useState({});
   const [AddNegocioShowModal, setAddNegocioShowModal] = useState(false);
+  const [selectedNegocioId, setSelectedNegocioId] = useState(null);
+
   useEffect(() => {
     async function fetchData() {
       try {
         const AllNegociosData = await getAllNegocios();
         setNegociosData(AllNegociosData);
-        //setNegociosData(NegociosStaticData);
         setLoadingTable(false);
       } catch (error) {
         console.error(
-          "Error al obtener los institutos en useEffect de NegociosTable:",
+          "Error al obtener los negocios en useEffect de NegociosTable:",
           error
         );
       }
     }
     fetchData();
   }, []);
+
+  const handleRowClick = (row) => {
+    setSelectedNegocioId(row.original._id);
+    setRowSelection((prev) => ({
+      [row.id]: !prev[row.id],
+    }));
+  };
+
+  const NegociosColumns = useMemo(
+    () => [
+      {
+        accessorKey: "IdNegocioOK",
+        header: "ID NEGOCIO OK",
+        size: 150,
+      },
+    ],
+    []
+  );
+
+  const table = useMaterialReactTable({
+    columns: NegociosColumns,
+    data: NegociosData,
+    getRowId: (row) => row._id,
+    muiTableBodyRowProps: ({ row }) => ({
+      onClick: () => handleRowClick(row),
+      selected: !!rowSelection[row.id],
+      sx: {
+        cursor: "pointer",
+        backgroundColor: rowSelection[row.id] ? "lightgreen" : "white",
+      },
+    }),
+    onRowSelectionChange: setRowSelection,
+    state: { rowSelection, isLoading: loadingTable },
+    renderBottomToolbarCustomActions: () => (
+      <Stack direction="row" sx={{ m: 1 }}>
+        <Box>
+          <Tooltip title="Agregar">
+            <IconButton onClick={() => setAddNegocioShowModal(true)}>
+              <AddCircleIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Editar">
+            <IconButton
+              onClick={() => {
+                if (selectedNegocioId !== null) {
+                  // Implement edit logic here
+                } else {
+                  alert("Por favor, seleccione un negocio antes de editarlo");
+                }
+              }}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Detalles">
+            <IconButton
+              onClick={() => {
+                if (selectedNegocioId !== null) {
+                  // Implement details logic here
+                } else {
+                  alert("Por favor, selecciona una fila para ver detalles.");
+                }
+              }}
+            >
+              <InfoIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Stack>
+    ),
+  });
+
   return (
     <Box>
-      <Box>
-        <MaterialReactTable
-          columns={NegociosColumns}
-          data={NegociosData}
-          state={{ isLoading: loadingTable }}
-          initialState={{ density: "compact", showGlobalFilter: true }}
-          renderTopToolbarCustomActions={({ table }) => (
-            <>
-              {/* ------- BARRA DE ACCIONES ------ */}
-              <Stack direction="row" sx={{ m: 1 }}>
-                <Box>
-                  <Tooltip title="Agregar">
-                    <IconButton onClick={() => setAddNegocioShowModal(true)}>
-                      <AddCircleIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Editar">
-                    <IconButton>
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Eliminar">
-                    <IconButton>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Detalles ">
-                    <IconButton>
-                      <InfoIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Stack>
-              {/* ------- BARRA DE ACCIONES FIN ------ */}
-            </>
-          )}
-        />
-      </Box>
-      {/* M O D A L E S */}
+      <MaterialReactTable table={table} />
       <Dialog open={AddNegocioShowModal}>
         <AddNegocioModal
           AddNegocioShowModal={AddNegocioShowModal}
@@ -96,7 +123,5 @@ const NegociosTable = () => {
     </Box>
   );
 };
+
 export default NegociosTable;
-
-
-
