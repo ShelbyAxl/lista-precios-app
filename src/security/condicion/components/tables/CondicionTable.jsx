@@ -53,6 +53,16 @@ const CondicionTable = () => {
         header: "ID TIPO OPERADOR OK",
         size: 150,
       },
+      {
+        accessorKey: "Valor",
+        header: "VALOR",
+        size: 150,
+      },
+      {
+        accessorKey: "Secuecia",
+        header: "SECUENCIA",
+        size: 150,
+      },
     ],
     []
   );

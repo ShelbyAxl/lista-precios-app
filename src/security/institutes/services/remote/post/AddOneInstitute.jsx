@@ -1,8 +1,6 @@
 import axios from "axios";
 
 export function AddOneInstitute(institute) {
-  console.log("<<EJECUTA>> API <<AddOneInstitute>> Requiere:", institute);
-  console.log(institute)
   return new Promise((resolve, reject) => {
     axios
       .post(import.meta.env.VITE_GET_ALL, institute)

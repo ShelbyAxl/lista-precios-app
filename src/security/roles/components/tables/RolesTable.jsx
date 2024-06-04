@@ -9,12 +9,14 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllRoles } from "../../services/remote/get/getAllRoles";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { SET_ID_ROLES } from "../../../redux/slices/rolesSlice";
 //FIC: Modals
 import AddRolesModal from "../modals/AddRolesModal";
 //FIC: Columns Table Definition.
 //FIC: Table - FrontEnd.
 const RolesTable = () => {
+  const dispatch = useDispatch();
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
   const [loadingTable, setLoadingTable] = useState(true);
   const [RolesData, setRolesData] = useState([]);
@@ -26,7 +28,9 @@ const RolesTable = () => {
     async function fetchData() {
       try {
         const AllRolesData = await getAllRoles(instituto);
+        console.log(AllRolesData);
         setRolesData(AllRolesData);
+        dispatch(SET_ID_ROLES(AllRolesData[0].Condicion));
         setLoadingTable(false);
       } catch (error) {
         console.error(
@@ -38,8 +42,12 @@ const RolesTable = () => {
     fetchData();
   }, []);
 
+  const rol = useSelector((state) => state.roles.rolesDataArr);
+  console.log(rol);
   const handleRowClick = (row) => {
     setSelectedRoleId(row.original._id);
+    dispatch(SET_ID_ROLES(row.original.Condicion));
+    
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
