@@ -66,7 +66,7 @@ const NegociosTable = () => {
     }),
     onRowSelectionChange: setRowSelection,
     state: { rowSelection, isLoading: loadingTable },
-    renderBottomToolbarCustomActions: () => (
+    renderTopToolbarCustomActions: () => (
       <Stack direction="row" sx={{ m: 1 }}>
         <Box>
           <Tooltip title="Agregar">
