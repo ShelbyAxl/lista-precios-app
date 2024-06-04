@@ -45,7 +45,7 @@ const InstitutesTable = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [addInstituteShowModal]);
   const dispatch = useDispatch();
   const handleRowClick = (row) => {
     setSelectedInstituteId(row._id);
@@ -90,11 +90,6 @@ const InstitutesTable = () => {
       size: 150, //small column
     },
     {
-      accessorKey: "IdProdServOK",
-      header: "ID PRODSERV OK",
-      size: 150, //small column
-    },
-    {
       accessorKey: "IdTipoListaOK",
       header: "TIPO DE LISTA",
       size: 150, //small column
@@ -111,7 +106,7 @@ const InstitutesTable = () => {
     },
     {
       accessorKey: "IdTipoFormulaOK",
-      header: "TIPO FORMULARIO",
+      header: "TIPO FORMULA",
       size: 150, //small column
     },
     {

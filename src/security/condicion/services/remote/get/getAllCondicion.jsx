@@ -12,11 +12,13 @@ export function getAllCondicion() {
             return {
               IdTipoCondicionOK: condicion.IdTipoCondicionOK,
               IdTipoOperadorOK: condicion.IdTipoOperadorOK,
+              Secuecia: condicion.Secuecia,
             };
           })
           )
         );
-        console.log(data);
+        console.log(data)
+        console.log(condicion);
         if (response.status === 200) {
           if (data.length === 0) {
             console.info("🛈 No se encontraron documentos en <<cat_Condicion>>");

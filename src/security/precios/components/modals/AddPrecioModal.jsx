@@ -19,6 +19,9 @@ import {
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
+import { PreciosValues } from "../../helpers/PrecioValues";
+import { AddOnePrecio } from "../../services/remote/post/AddOnePrecio";
+import { useSelector } from "react-redux";
 //FIC: Formik - Yup
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -30,53 +33,31 @@ const AddPrecioModal = ({
   AddPrecioShowModal,
   setAddPrecioShowModal,
 }) => {
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  console.log(instituto);
+
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
-  const [PreciosValuesLabel, setPreciosValuesLabel] = useState([]);
   const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getDataSelectPreciosType();
   }, []);
-
-  //FIC: Ejecutamos la API que obtiene todas las etiquetas
-  //y filtramos solo la etiqueta de Tipos Giros de Institutos
-  //para que los ID y Nombres se agreguen como items en el
-  //control <Select> del campo IdTipoGiroOK en la Modal.
-  async function getDataSelectPreciosType() {
-    try {
-      const Labels = await GetAllLabels();
-      console.log("Labels:", Labels); // Registrar la respuesta completa
-      const PreciosTypes = Labels.find(
-        (label) => label.IdEtiquetaOK === "IdTipoGiros"
-      );
-      console.log("PreciosTypes:", PreciosTypes); // Registrar el resultado de la búsqueda
-      if (PreciosTypes) {
-        setPreciosValuesLabel(PreciosTypes.valores);
-      } else {
-        console.error(
-          "No se encontraron etiquetas para Tipos Giros de Institutos"
-        );
-      }
-    } catch (e) {
-      console.error(
-        "Error al obtener Etiquetas para Tipos Giros de Institutos:",
-        e
-      );
-    }
-  }
 
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
-      IdInstitutoOK: "",
       IdProdServOK: "",
-      IdPresentaOK: "",
+      PresentacionDelProducto: "",
+      IdTipoFormulaOK: "",
+      Formula: "",
+      Precio: "",
     },
     validationSchema: Yup.object({
-      IdInstitutoOK: Yup.string().required("Campo requerido"),
       IdProdServOK: Yup.string().required("Campo requerido"),
-      IdPresentaOK: Yup.string().required("Campo requerido"),
+      PresentacionDelProducto: Yup.string().required("Campo requerido"),
+      IdTipoFormulaOK: Yup.string().required("Campo requerido"),
+      Formula: Yup.string().required("Campo requerido"),
+      Precio: Yup.number().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
       //FIC: mostramos el Loading.
@@ -90,7 +71,9 @@ const AddPrecioModal = ({
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
-        const Precio = PrecioValues(values);
+        values.IdPresentaOK = "IdPresentaOK";
+        values.Precio = parseInt(values.Precio);
+        const Precio = PreciosValues(values);
         //FIC: mandamos a consola los datos extraidos
         console.log("<<Precio>>", Precio);
         //FIC: llamar el metodo que desencadena toda la logica
@@ -98,7 +81,7 @@ const AddPrecioModal = ({
         //construye todo el JSON de la coleccion de Institutos para
         //que pueda enviarse en el "body" de la API y determinar si
         //la inserción fue o no exitosa.
-        await AddOnePrecio(Precio);
+        await AddOnePrecio(instituto, Precio);
         //FIC: si no hubo error en el metodo anterior
         //entonces lanzamos la alerta de exito.
         setMensajeExitoAlert("Instituto fue creado y guardado Correctamente");
@@ -142,102 +125,73 @@ const AddPrecioModal = ({
         >
           {/* FIC: Campos de captura o selección */}
           <TextField
-            id="IdInstitutoOK"
-            label="IdInstitutoOK*"
-            value={formik.values.IdInstitutoOK}
+            id="IdProdServOK"
+            label="IdProdServOK*"
+            value={formik.values.IdProdServOK}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoOK &&
-              Boolean(formik.errors.IdInstitutoOK)
+              formik.touched.IdProdServOK &&
+              Boolean(formik.errors.IdProdServOK)
             }
             helperText={
-              formik.touched.IdInstitutoOK && formik.errors.IdInstitutoOK
+              formik.touched.IdProdServOK && formik.errors.IdProdServOK
             }
           />
           <TextField
-            id="IdInstitutoBK"
-            label="IdInstitutoBK*"
-            value={formik.values.IdInstitutoBK}
+            id="PresentacionDelProducto"
+            label="PresentacionDelProducto*"
+            value={formik.values.PresentacionDelProducto}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoBK &&
-              Boolean(formik.errors.IdInstitutoBK)
+              formik.touched.PresentacionDelProducto &&
+              Boolean(formik.errors.PresentacionDelProducto)
             }
             helperText={
-              formik.touched.IdInstitutoBK && formik.errors.IdInstitutoBK
+              formik.touched.PresentacionDelProducto && formik.errors.PresentacionDelProducto
             }
           />
           <TextField
-            id="DesInstituto"
-            label="DesInstituto*"
-            value={formik.values.DesInstituto}
+            id="IdTipoFormulaOK"
+            label="IdTipoFormulaOK*"
+            value={formik.values.IdTipoFormulaOK}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.DesInstituto && Boolean(formik.errors.DesInstituto)
+              formik.touched.IdTipoFormulaOK &&
+              Boolean(formik.errors.IdTipoFormulaOK)
             }
             helperText={
-              formik.touched.DesInstituto && formik.errors.DesInstituto
+              formik.touched.IdTipoFormulaOK && formik.errors.IdTipoFormulaOK
             }
           />
           <TextField
-            id="Alias"
-            label="Alias*"
-            value={formik.values.Alias}
-            {...commonTextFieldProps}
-            error={formik.touched.Alias && Boolean(formik.errors.Alias)}
-            helperText={formik.touched.Alias && formik.errors.Alias}
-          />
-          {/* <TextField
-            id="Matriz"
-            label="Matriz*"
-            value={formik.values.Matriz}
-            {...commonTextFieldProps}
-            error={formik.touched.Matriz && Boolean(formik.errors.Matriz)}
-            helperText={formik.touched.Matriz && formik.errors.Matriz}
-          /> */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formik.values.Matriz}
-                onChange={formik.handleChange}
-                name="Matriz"
-                color="primary"
-                disabled={!!mensajeExitoAlert}
-              />
-            }
-            label="Matriz"
-          />
-          <Select
-            value={formik.values.IdTipoGiroOK}
-            label="Selecciona una opción"
-            onChange={formik.handleChange}
-            name="IdTipoGiroOK" //FIC: Asegúrate que coincida con el nombre del campo
-            onBlur={formik.handleBlur}
-            disabled={!!mensajeExitoAlert}
-          >
-            {PreciosValuesLabel.map((tipoGiro) => {
-              return (
-                <MenuItem
-                  value={`IdTipoGiros-${tipoGiro.IdValorOK}`}
-                  key={tipoGiro.Valor}
-                >
-                  {tipoGiro.Valor}
-                </MenuItem>
-              );
-            })}
-          </Select>
-          <TextField
-            id="IdInstitutoSupOK"
-            label="IdInstitutoSupOK*"
-            value={formik.values.IdInstitutoSupOK}
+            id="Formula"
+            label="Formula*"
+            value={formik.values.Formula}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoSupOK &&
-              Boolean(formik.errors.IdInstitutoSupOK)
+              formik.touched.Formula &&
+              Boolean(formik.errors.Formula)
             }
             helperText={
-              formik.touched.IdInstitutoSupOK && formik.errors.IdInstitutoSupOK
+              formik.touched.Formula && formik.errors.Formula
+            }
+          />
+          <TextField
+            id="Precio"
+            label="Precio*"
+            value={formik.values.Precio}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.Precio &&
+              Boolean(formik.errors.Precio)
+            }
+            helperText={
+              formik.touched.Precio && formik.errors.Precio
             }
           />
         </DialogContent>

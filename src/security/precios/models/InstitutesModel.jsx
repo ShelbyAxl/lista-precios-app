@@ -1,11 +1,13 @@
 import { getDetailRow } from "../helpers/Utils";
 
-export function InstituteModel() {
-  let Institute = {
-    IdInstitutoOK: { type: String },
+export function PreciosModel() {
+  let Precios = {
     IdProdServOK: { type: String },
     IdPresentaOK: { type: String },
-    detail_row: getDetailRow(),
+    PresentacionDelProducto: { type: String },
+    IdTipoFormulaOK: { type: String },
+    Formula: { type: String },
+    Precio: { type: Number },
   };
-  return Institute;
+  return Precios;
 }

@@ -2,9 +2,10 @@ import axios from "axios";
 
 export function AddOneInstitute(institute) {
   console.log("<<EJECUTA>> API <<AddOneInstitute>> Requiere:", institute);
+  console.log(institute)
   return new Promise((resolve, reject) => {
     axios
-      .post(import.meta.env.VITE_CAT_INSTITUTES_URL, institute)
+      .post(import.meta.env.VITE_GET_ALL, institute)
       .then((response) => {
         console.log("<<RESPONSE>> AddOneInstitute", institute);
         const data = response.data;
@@ -16,7 +17,7 @@ export function AddOneInstitute(institute) {
           console.error(
             "<<ERROR>> <<NO>> se ejecuto la API <<AddOneInstitute>> de forma correcta",
             data
-          );
+          );-
           reject(data);
         }
       })

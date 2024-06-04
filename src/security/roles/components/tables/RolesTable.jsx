@@ -10,8 +10,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 //FIC: DB
 //import RolesStaticData from '../../../../../db/security/json/Roles/RolesData';
 import { getAllRoles } from "../../services/remote/get/getAllRoles";
+import { useSelector } from "react-redux";
 //FIC: Modals
-import AddRoleModal from "../modals/AddRolesModal";
+import AddRolesModal from "../modals/AddRolesModal";
 //FIC: Columns Table Definition.
 const RolesColumns = [
   {
@@ -38,6 +39,10 @@ const RolesColumns = [
 //FIC: Table - FrontEnd.
 const RolesTable = () => {
   //FIC: controlar el estado del indicador (loading).
+
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  console.log("instituto:", instituto);
+
   const [loadingTable, setLoadingTable] = useState(true);
 
   //FIC: controlar el estado de la data de Institutos.
@@ -47,7 +52,7 @@ const RolesTable = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const AllRolesData = await getAllRoles();
+        const AllRolesData = await getAllRoles(instituto);
         setRolesData(AllRolesData);
         //setRolesData(RolesStaticData);
         setLoadingTable(false);
@@ -102,9 +107,9 @@ const RolesTable = () => {
       </Box>
       {/* M O D A L E S */}
       <Dialog open={AddRoleShowModal}>
-        <AddRoleModal
-          AddRoleShowModal={AddRoleShowModal}
-          setAddRoleShowModal={setAddRoleShowModal}
+        <AddRolesModal
+          AddRolesShowModal={AddRoleShowModal}
+          setAddRolesShowModal={setAddRoleShowModal}
           onClose={() => setAddRoleShowModal(false)}
         />
       </Dialog>

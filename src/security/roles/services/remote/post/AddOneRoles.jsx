@@ -1,12 +1,12 @@
 import axios from "axios";
 
-export function AddOneInstitute(institute) {
-  console.log("<<EJECUTA>> API <<AddOneInstitute>> Requiere:", institute);
+export function AddOneRoles(id, roles) {
+  console.log(`${import.meta.env.VITE_GET_ALL}/${id}/roles`);
   return new Promise((resolve, reject) => {
     axios
-      .post(import.meta.env.VITE_CAT_INSTITUTES_URL, institute)
+      .post(`${import.meta.env.VITE_GET_ALL}/${id}/roles`, roles)
       .then((response) => {
-        console.log("<<RESPONSE>> AddOneInstitute", institute);
+        console.log("<<RESPONSE>> AddOneRoles", roles);
         const data = response.data;
         console.log(response.status);
 
@@ -14,14 +14,14 @@ export function AddOneInstitute(institute) {
           resolve(data);
         } else {
           console.error(
-            "<<ERROR>> <<NO>> se ejecuto la API <<AddOneInstitute>> de forma correcta",
+            "<<ERROR>> <<NO>> se ejecuto la API <<AddOneRoles>> de forma correcta",
             data
           );
           reject(data);
         }
       })
       .catch((error) => {
-        console.error("<<ERROR>> en API <<AddOneInstitute>>", error);
+        console.error("<<ERROR>> en API <<AddOneRoles>>", error);
         reject(error);
       });
   });

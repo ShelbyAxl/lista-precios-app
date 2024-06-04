@@ -1,10 +1,11 @@
 import axios from "axios";
 
-export function AddOnePrecio(Precio) {
-  console.log("<<EJECUTA>> API <<AddOnePrecio>> Requiere:", Precio);
+export function AddOnePrecio(id, Precio) {
+  console.log(`${import.meta.env.VITE_GET_ALL}/${id}/precios`);
+  console.log(Precio);
   return new Promise((resolve, reject) => {
     axios
-      .post(import.meta.env.VITE_CAT_PrecioS_URL, Precio)
+      .post(`${import.meta.env.VITE_GET_ALL}/${id}/precios`, Precio)
       .then((response) => {
         console.log("<<RESPONSE>> AddOnePrecio", Precio);
         const data = response.data;

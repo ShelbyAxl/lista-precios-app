@@ -24,6 +24,11 @@ const CondicionColumns = [
     header: "ID TIPO OPERADOR OK",
     size: 150, //small column
   },
+  {
+    accessorKey: "Secuecia",
+    header: "SECUENCIA",
+    size: 150, //small column
+  }
 ];
 //FIC: Table - FrontEnd.
 const CondicionTable = () => {

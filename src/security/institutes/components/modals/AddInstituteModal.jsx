@@ -32,51 +32,38 @@ const AddInstituteModal = ({
 }) => {
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
-  const [InstitutesValuesLabel, setInstitutesValuesLabel] = useState([]);
   const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getDataSelectInstitutesType();
   }, []);
-
-  //FIC: Ejecutamos la API que obtiene todas las etiquetas
-  //y filtramos solo la etiqueta de Tipos Giros de Institutos
-  //para que los ID y Nombres se agreguen como items en el
-  //control <Select> del campo IdTipoGiroOK en la Modal.
-  async function getDataSelectInstitutesType() {
-    try {
-      const Labels = await GetAllLabels();
-      console.log("Labels:", Labels); // Registrar la respuesta completa
-      const InstitutesTypes = Labels.find(
-        (label) => label.IdEtiquetaOK === "IdTipoGiros"
-      );
-      console.log("InstitutesTypes:", InstitutesTypes); // Registrar el resultado de la búsqueda
-      if (InstitutesTypes) {
-        setInstitutesValuesLabel(InstitutesTypes.valores);
-      } else {
-        console.error(
-          "No se encontraron etiquetas para Tipos Giros de Institutos"
-        );
-      }
-    } catch (e) {
-      console.error(
-        "Error al obtener Etiquetas para Tipos Giros de Institutos:",
-        e
-      );
-    }
-  }
 
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
       IdInstitutoOK: "",
-      IdProdServOK: "",
-      IdPresentaOK: "",
+      Instituto: "",
+      IdListaOK: "",
+      IdListaBK: "",
+      DesLista: "",
+      FechaExpiraIni: "",
+      FechaExpiraFin: "",
+      IdTipoListaOK: "",
+      IdTipoGeneraListaOK: "",
+      IdListaBaseOK: "",
+      IdTipoFormulaOK: "",
     },
     validationSchema: Yup.object({
       IdInstitutoOK: Yup.string().required("Campo requerido"),
-      IdProdServOK: Yup.string().required("Campo requerido"),
-      IdPresentaOK: Yup.string().required("Campo requerido"),
+      Instituto: Yup.string().required("Campo requerido"),
+      IdListaOK: Yup.string().required("Campo requerido"),
+      IdListaBK: Yup.string().required("Campo requerido"),
+      DesLista: Yup.string().required("Campo requerido"),
+      FechaExpiraIni: Yup.string().required("Campo requerido"),
+      FechaExpiraFin: Yup.string().required("Campo requerido"),
+      IdTipoListaOK: Yup.string().required("Campo requerido"),
+      IdTipoGeneraListaOK: Yup.string().required("Campo requerido"),
+      IdListaBaseOK: Yup.string().required("Campo requerido"),
+      IdTipoFormulaOK: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
       //FIC: mostramos el Loading.
@@ -156,88 +143,143 @@ const AddInstituteModal = ({
             }
           />
           <TextField
-            id="IdInstitutoBK"
-            label="IdInstitutoBK*"
-            value={formik.values.IdInstitutoBK}
+            id="Instituto"
+            label="Instituto*"
+            value={formik.values.Instituto}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoBK &&
-              Boolean(formik.errors.IdInstitutoBK)
+              formik.touched.Instituto &&
+              Boolean(formik.errors.Instituto)
             }
             helperText={
-              formik.touched.IdInstitutoBK && formik.errors.IdInstitutoBK
+              formik.touched.Instituto && formik.errors.Instituto
             }
           />
           <TextField
-            id="DesInstituto"
-            label="DesInstituto*"
-            value={formik.values.DesInstituto}
+            id="IdListaOK"
+            label="IdListaOK*"
+            value={formik.values.IdListaOK}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.DesInstituto && Boolean(formik.errors.DesInstituto)
+              formik.touched.IdListaOK &&
+              Boolean(formik.errors.IdListaOK)
             }
             helperText={
-              formik.touched.DesInstituto && formik.errors.DesInstituto
+              formik.touched.IdListaOK && formik.errors.IdListaOK
             }
           />
           <TextField
-            id="Alias"
-            label="Alias*"
-            value={formik.values.Alias}
-            {...commonTextFieldProps}
-            error={formik.touched.Alias && Boolean(formik.errors.Alias)}
-            helperText={formik.touched.Alias && formik.errors.Alias}
-          />
-          {/* <TextField
-            id="Matriz"
-            label="Matriz*"
-            value={formik.values.Matriz}
-            {...commonTextFieldProps}
-            error={formik.touched.Matriz && Boolean(formik.errors.Matriz)}
-            helperText={formik.touched.Matriz && formik.errors.Matriz}
-          /> */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formik.values.Matriz}
-                onChange={formik.handleChange}
-                name="Matriz"
-                color="primary"
-                disabled={!!mensajeExitoAlert}
-              />
-            }
-            label="Matriz"
-          />
-          <Select
-            value={formik.values.IdTipoGiroOK}
-            label="Selecciona una opción"
-            onChange={formik.handleChange}
-            name="IdTipoGiroOK" //FIC: Asegúrate que coincida con el nombre del campo
-            onBlur={formik.handleBlur}
-            disabled={!!mensajeExitoAlert}
-          >
-            {InstitutesValuesLabel.map((tipoGiro) => {
-              return (
-                <MenuItem
-                  value={`IdTipoGiros-${tipoGiro.IdValorOK}`}
-                  key={tipoGiro.Valor}
-                >
-                  {tipoGiro.Valor}
-                </MenuItem>
-              );
-            })}
-          </Select>
-          <TextField
-            id="IdInstitutoSupOK"
-            label="IdInstitutoSupOK*"
-            value={formik.values.IdInstitutoSupOK}
+            id="IdListaBK"
+            label="IdListaBK*"
+            value={formik.values.IdListaBK}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoSupOK &&
-              Boolean(formik.errors.IdInstitutoSupOK)
+              formik.touched.IdListaBK &&
+              Boolean(formik.errors.IdListaBK)
             }
             helperText={
-              formik.touched.IdInstitutoSupOK && formik.errors.IdInstitutoSupOK
+              formik.touched.IdListaBK && formik.errors.IdListaBK
+            }
+          />
+          <TextField
+            id="DesLista"
+            label="DesLista*"
+            value={formik.values.DesLista}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.DesLista &&
+              Boolean(formik.errors.DesLista)
+            }
+            helperText={
+              formik.touched.DesLista && formik.errors.DesLista
+            }
+          />
+          <TextField
+            id="FechaExpiraIni"
+            label="FechaExpiraIni*"
+            value={formik.values.FechaExpiraIni}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.FechaExpiraIni &&
+              Boolean(formik.errors.FechaExpiraIni)
+            }
+            helperText={
+              formik.touched.FechaExpiraIni && formik.errors.FechaExpiraIni
+            }
+          />
+          <TextField
+            id="FechaExpiraFin"
+            label="FechaExpiraFin*"
+            value={formik.values.FechaExpiraFin}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.FechaExpiraFin &&
+              Boolean(formik.errors.FechaExpiraFin)
+            }
+            helperText={
+              formik.touched.FechaExpiraFin && formik.errors.FechaExpiraFin
+            }
+          />
+          <TextField
+            id="IdTipoListaOK"
+            label="IdTipoListaOK*"
+            value={formik.values.IdTipoListaOK}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.IdTipoListaOK &&
+              Boolean(formik.errors.IdTipoListaOK)
+            }
+            helperText={
+              formik.touched.IdTipoListaOK && formik.errors.IdTipoListaOK
+            }
+          />
+          <TextField
+            id="IdTipoGeneraListaOK"
+            label="IdTipoGeneraListaOK*"
+            value={formik.values.IdTipoGeneraListaOK}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.IdTipoGeneraListaOK &&
+              Boolean(formik.errors.IdTipoGeneraListaOK)
+            }
+            helperText={
+              formik.touched.IdTipoGeneraListaOK && formik.errors.IdTipoGeneraListaOK
+            }
+          />
+          <TextField
+            id="IdListaBaseOK"
+            label="IdListaBaseOK*"
+            value={formik.values.IdListaBaseOK}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.IdListaBaseOK &&
+              Boolean(formik.errors.IdListaBaseOK)
+            }
+            helperText={
+              formik.touched.IdListaBaseOK && formik.errors.IdListaBaseOK
+            }
+          />
+          <TextField
+            id="IdTipoFormulaOK"
+            label="IdTipoFormulaOK*"
+            value={formik.values.IdTipoFormulaOK}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.IdTipoFormulaOK &&
+              Boolean(formik.errors.IdTipoFormulaOK)
+            }
+            helperText={
+              formik.touched.IdTipoFormulaOK && formik.errors.IdTipoFormulaOK
             }
           />
         </DialogContent>

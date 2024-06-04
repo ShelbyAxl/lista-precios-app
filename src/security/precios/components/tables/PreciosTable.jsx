@@ -21,19 +21,14 @@ const PreciosColumns = [
     size: 150, //small column
   },
   {
-    accessorKey: "IdPresentaBK",
+    accessorKey: "PresentacionDelProducto",
     header: "ID PRESENTA OK",
     size: 200 //small column
   },
   {
-    accessorKey: "PresentacionDelProducto",
-    header: "DESCRIPCION",
-    size: 600, //small column
-  },
-  {
     accessorKey: "IdTipoFormulaOK",
-    header: "ID TIPO FORMUILA OK",
-    size: 150, //small column
+    header: "DESCRIPCION",
+    size: 100, //small column
   },
   {
     accessorKey: "Formula",

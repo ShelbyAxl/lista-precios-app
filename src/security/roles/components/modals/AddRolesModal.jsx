@@ -23,60 +23,36 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 //FIC: Helpers
-// import { InstituteValues } from "../../helpers/InstituteValues";
+import { RolesValues } from "../../helpers/RolesValues";
+import { useSelector } from "react-redux";
 //FIC: Services
-// import { AddOneInstitute } from "../../../institutes/services/remote/post/AddOneInstitute";
-const AddInstituteModal = ({
-  AddInstituteShowModal,
-  setAddInstituteShowModal,
+import { AddOneRoles } from "../../services/remote/post/AddOneRoles";
+const AddRolesModal = ({
+  AddRolesShowModal,
+  setAddRolesShowModal,
 }) => {
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  console.log("instituto:", instituto);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
-  const [InstitutesValuesLabel, setInstitutesValuesLabel] = useState([]);
   const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getDataSelectInstitutesType();
   }, []);
-
-  //FIC: Ejecutamos la API que obtiene todas las etiquetas
-  //y filtramos solo la etiqueta de Tipos Giros de Institutos
-  //para que los ID y Nombres se agreguen como items en el
-  //control <Select> del campo IdTipoGiroOK en la Modal.
-  async function getDataSelectInstitutesType() {
-    try {
-      const Labels = await GetAllLabels();
-      console.log("Labels:", Labels); // Registrar la respuesta completa
-      const InstitutesTypes = Labels.find(
-        (label) => label.IdEtiquetaOK === "IdTipoGiros"
-      );
-      console.log("InstitutesTypes:", InstitutesTypes); // Registrar el resultado de la búsqueda
-      if (InstitutesTypes) {
-        setInstitutesValuesLabel(InstitutesTypes.valores);
-      } else {
-        console.error(
-          "No se encontraron etiquetas para Tipos Giros de Institutos"
-        );
-      }
-    } catch (e) {
-      console.error(
-        "Error al obtener Etiquetas para Tipos Giros de Institutos:",
-        e
-      );
-    }
-  }
 
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
-      IdInstitutoOK: "",
-      IdProdServOK: "",
-      IdPresentaOK: "",
+      DesCondicion: "",
+      FechaExpiraIni: "",
+      FechaExpiraFin: "",
+      Condicion: "",
     },
     validationSchema: Yup.object({
-      IdInstitutoOK: Yup.string().required("Campo requerido"),
-      IdProdServOK: Yup.string().required("Campo requerido"),
-      IdPresentaOK: Yup.string().required("Campo requerido"),
+      DesCondicion: Yup.string().required("Campo requerido"),
+      FechaExpiraIni: Yup.string().required("Campo requerido"),
+      FechaExpiraFin: Yup.string().required("Campo requerido"),
+      Condicion: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
       //FIC: mostramos el Loading.
@@ -90,21 +66,21 @@ const AddInstituteModal = ({
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
-        const Institute = InstituteValues(values);
+        const Roles = RolesValues(values);
         //FIC: mandamos a consola los datos extraidos
-        console.log("<<Institute>>", Institute);
+        console.log("<<Roles>>", Roles);
         //FIC: llamar el metodo que desencadena toda la logica
-        //para ejecutar la API "AddOneInstitute" y que previamente
+        //para ejecutar la API "AddOneRoles" y que previamente
         //construye todo el JSON de la coleccion de Institutos para
         //que pueda enviarse en el "body" de la API y determinar si
         //la inserción fue o no exitosa.
-        await AddOneInstitute(Institute);
+        await AddOneRoles(instituto, Roles);
         //FIC: si no hubo error en el metodo anterior
         //entonces lanzamos la alerta de exito.
         setMensajeExitoAlert("Instituto fue creado y guardado Correctamente");
         //FIC: falta actualizar el estado actual (documentos/data) para que
         //despues de insertar el nuevo instituto se visualice en la tabla.
-        //fetchDataInstitute();
+        //fetchDataRoles();
       } catch (e) {
         setMensajeExitoAlert(null);
         setMensajeErrorAlert("No se pudo crear el Instituto");
@@ -124,8 +100,8 @@ const AddInstituteModal = ({
   };
   return (
     <Dialog
-      open={AddInstituteShowModal}
-      onClose={() => setAddInstituteShowModal(false)}
+      open={AddRolesShowModal}
+      onClose={() => setAddRolesShowModal(false)}
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
@@ -142,104 +118,62 @@ const AddInstituteModal = ({
         >
           {/* FIC: Campos de captura o selección */}
           <TextField
-            id="IdInstitutoOK"
-            label="IdInstitutoOK*"
-            value={formik.values.IdInstitutoOK}
+            id="DesCondicion"
+            label="DesCondicion*"
+            value={formik.values.DesCondicion}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoOK &&
-              Boolean(formik.errors.IdInstitutoOK)
+              formik.touched.DesCondicion &&
+              Boolean(formik.errors.DesCondicion)
             }
             helperText={
-              formik.touched.IdInstitutoOK && formik.errors.IdInstitutoOK
+              formik.touched.DesCondicion && formik.errors.DesCondicion
             }
           />
           <TextField
-            id="IdInstitutoBK"
-            label="IdInstitutoBK*"
-            value={formik.values.IdInstitutoBK}
+            id="FechaExpiraIni"
+            label="FechaExpiraIni*"
+            value={formik.values.FechaExpiraIni}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoBK &&
-              Boolean(formik.errors.IdInstitutoBK)
+              formik.touched.FechaExpiraIni &&
+              Boolean(formik.errors.FechaExpiraIni)
             }
             helperText={
-              formik.touched.IdInstitutoBK && formik.errors.IdInstitutoBK
+              formik.touched.FechaExpiraIni && formik.errors.FechaExpiraIni
             }
           />
           <TextField
-            id="DesInstituto"
-            label="DesInstituto*"
-            value={formik.values.DesInstituto}
+            id="FechaExpiraFin"
+            label="FechaExpiraFin*"
+            value={formik.values.FechaExpiraFin}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.DesInstituto && Boolean(formik.errors.DesInstituto)
+              formik.touched.FechaExpiraFin &&
+              Boolean(formik.errors.FechaExpiraFin)
             }
             helperText={
-              formik.touched.DesInstituto && formik.errors.DesInstituto
+              formik.touched.FechaExpiraFin && formik.errors.FechaExpiraFin
             }
           />
           <TextField
-            id="Alias"
-            label="Alias*"
-            value={formik.values.Alias}
-            {...commonTextFieldProps}
-            error={formik.touched.Alias && Boolean(formik.errors.Alias)}
-            helperText={formik.touched.Alias && formik.errors.Alias}
-          />
-          {/* <TextField
-            id="Matriz"
-            label="Matriz*"
-            value={formik.values.Matriz}
-            {...commonTextFieldProps}
-            error={formik.touched.Matriz && Boolean(formik.errors.Matriz)}
-            helperText={formik.touched.Matriz && formik.errors.Matriz}
-          /> */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formik.values.Matriz}
-                onChange={formik.handleChange}
-                name="Matriz"
-                color="primary"
-                disabled={!!mensajeExitoAlert}
-              />
-            }
-            label="Matriz"
-          />
-          <Select
-            value={formik.values.IdTipoGiroOK}
-            label="Selecciona una opción"
-            onChange={formik.handleChange}
-            name="IdTipoGiroOK" //FIC: Asegúrate que coincida con el nombre del campo
-            onBlur={formik.handleBlur}
-            disabled={!!mensajeExitoAlert}
-          >
-            {InstitutesValuesLabel.map((tipoGiro) => {
-              return (
-                <MenuItem
-                  value={`IdTipoGiros-${tipoGiro.IdValorOK}`}
-                  key={tipoGiro.Valor}
-                >
-                  {tipoGiro.Valor}
-                </MenuItem>
-              );
-            })}
-          </Select>
-          <TextField
-            id="IdInstitutoSupOK"
-            label="IdInstitutoSupOK*"
-            value={formik.values.IdInstitutoSupOK}
+            id="Condicion"
+            label="Condicion*"
+            value={formik.values.Condicion}
+            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdInstitutoSupOK &&
-              Boolean(formik.errors.IdInstitutoSupOK)
+              formik.touched.Condicion &&
+              Boolean(formik.errors.Condicion)
             }
             helperText={
-              formik.touched.IdInstitutoSupOK && formik.errors.IdInstitutoSupOK
+              formik.touched.Condicion && formik.errors.Condicion
             }
           />
+          
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
@@ -263,7 +197,7 @@ const AddInstituteModal = ({
             loadingPosition="start"
             startIcon={<CloseIcon />}
             variant="outlined"
-            onClick={() => setAddInstituteShowModal(false)}
+            onClick={() => setAddRolesShowModal(false)}
           >
             <span>CERRAR</span>
           </LoadingButton>
@@ -284,4 +218,4 @@ const AddInstituteModal = ({
     </Dialog>
   );
 };
-export default AddInstituteModal;
+export default AddRolesModal;
