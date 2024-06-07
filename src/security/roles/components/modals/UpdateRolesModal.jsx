@@ -11,10 +11,8 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
-  InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,79 +21,76 @@ import SaveIcon from "@mui/icons-material/Save";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 //FIC: Helpers
-import { PromocionesValues } from "../../helpers/PromocionesValues";
+import { RolesValues } from "../../helpers/RolesValues";
 //FIC: Services
-import { AddOnePromociones } from "../../services/remote/post/AddOneInstitute";
-import { useSelector } from "react-redux";
-const AddPromocionesModal = ({
-  AddPromocionesShowModal,
-  setAddPromocionesShowModal,
+import { getOneRol } from "../../services/remote/get/getOneRol";
+import { putRol } from "../../services/remote/put/UpdateOneRol";
+const UpdateRoleModal = ({
+  UpdateRoleShowModal,
+  setUpdateRoleShowModal,
+  instituteId,
+  RoleId,
 }) => {
-
-  const instituto = useSelector((state) => state.institutes.institutesDataArr);
-  
+  const ids = [instituteId, RoleId];
+  console.log("<<ids>>", ids);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
-  
-  useEffect(() => {
-    console.log(instituto);
-    
-  }, []);
 
+  useEffect(() => {
+      getRoleData();
+  }, [RoleId]);
+  async function getRoleData() {
+    console.log("getRoleData is called");
+    try {
+      const RoleData = await getOneRol(ids);
+      console.log("Role Data:", RoleData);
+      formik.setValues({
+        DesCondicion: RoleData.DesCondicion,
+        FechaExpiraIni: RoleData.FechaExpiraIni,
+        FechaExpiraFin: RoleData.FechaExpiraFin,
+        Condicion: RoleData.Condicion,
+      });
+    } catch (e) {
+      console.error("Error al obtener los datos del instituto:", e);
+    }
+  }
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
-      IdTipoPromoOK: "",
-      DesPromo: "",
-      Formula: "",
+      DesCondicion: "",
       FechaExpiraIni: "",
       FechaExpiraFin: "",
+      Condicion: "",
     },
     validationSchema: Yup.object({
-      IdTipoPromoOK: Yup.string().required("Campo requerido"),
-      DesPromo: Yup.string().required("Campo requerido"),
-      Formula: Yup.string().required("Campo requerido"),
+      DesCondicion: Yup.string().required("Campo requerido"),
       FechaExpiraIni: Yup.string().required("Campo requerido"),
       FechaExpiraFin: Yup.string().required("Campo requerido"),
+      Condicion: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
-      //FIC: mostramos el Loading.
+      console.log("FIC: entro al onSubmit");
       setLoading(true);
-
-      //FIC: notificamos en consola que si se llamo y entro al evento.
       console.log(
         "FIC: entro al onSubmit despues de hacer click en boton Guardar"
       );
-      //FIC: reiniciamos los estados de las alertas de exito y error.
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
-        const Promociones = PromocionesValues(values);
-        //FIC: mandamos a consola los datos extraidos
-        console.log("<<Promociones>>", Promociones);
-        //FIC: llamar el metodo que desencadena toda la logica
-        //para ejecutar la API "AddOnePromociones" y que previamente
-        //construye todo el JSON de la coleccion de Institutos para
-        //que pueda enviarse en el "body" de la API y determinar si
-        //la inserción fue o no exitosa.
-        await AddOnePromociones(instituto, Promociones);
-        //FIC: si no hubo error en el metodo anterior
-        //entonces lanzamos la alerta de exito.
-        setMensajeExitoAlert("Instituto fue creado y guardado Correctamente");
-        //FIC: falta actualizar el estado actual (documentos/data) para que
-        //despues de insertar el nuevo instituto se visualice en la tabla.
-        //fetchDataPromociones();
+        const Role = RolesValues(values);
+        console.log("<<Role>>", Role);
+        await putRol(ids, Role);
+        setMensajeExitoAlert(
+          "Instituto fue actualizado y guardado Correctamente"
+        );
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo crear el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar el Instituto");
       }
-
-      //FIC: ocultamos el Loading.
       setLoading(false);
     },
   });
-  //FIC: props structure for TextField Control.
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -105,15 +100,15 @@ const AddPromocionesModal = ({
   };
   return (
     <Dialog
-      open={AddPromocionesShowModal}
-      onClose={() => setAddPromocionesShowModal(false)}
+      open={UpdateRoleShowModal}
+      onClose={() => setUpdateRoleShowModal(false)}
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Actualizar Instituto</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -123,45 +118,17 @@ const AddPromocionesModal = ({
         >
           {/* FIC: Campos de captura o selección */}
           <TextField
-            id="IdTipoPromoOK"
-            label="IdTipoPromoOK*"
-            value={formik.values.IdTipoPromoOK}
+            id="DesCondicion"
+            label="DesCondicion*"
+            value={formik.values.DesCondicion}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.IdTipoPromoOK &&
-              Boolean(formik.errors.IdTipoPromoOK)
+              formik.touched.DesCondicion &&
+              Boolean(formik.errors.DesCondicion)
             }
             helperText={
-              formik.touched.IdTipoPromoOK && formik.errors.IdTipoPromoOK
-            }
-          />
-          <TextField
-            id="DesPromo"
-            label="DesPromo*"
-            value={formik.values.DesPromo}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.DesPromo &&
-              Boolean(formik.errors.DesPromo)
-            }
-            helperText={
-              formik.touched.DesPromo && formik.errors.DesPromo
-            }
-          />
-          <TextField
-            id="Formula"
-            label="Formula*"
-            value={formik.values.Formula}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.Formula &&
-              Boolean(formik.errors.Formula)
-            }
-            helperText={
-              formik.touched.Formula && formik.errors.Formula
+              formik.touched.DesCondicion && formik.errors.DesCondicion
             }
           />
           <TextField
@@ -192,6 +159,20 @@ const AddPromocionesModal = ({
               formik.touched.FechaExpiraFin && formik.errors.FechaExpiraFin
             }
           />
+          <TextField
+            id="Condicion"
+            label="Condicion*"
+            value={formik.values.Condicion}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={
+              formik.touched.Condicion &&
+              Boolean(formik.errors.Condicion)
+            }
+            helperText={
+              formik.touched.Condicion && formik.errors.Condicion
+            }
+          />
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
@@ -215,7 +196,7 @@ const AddPromocionesModal = ({
             loadingPosition="start"
             startIcon={<CloseIcon />}
             variant="outlined"
-            onClick={() => setAddPromocionesShowModal(false)}
+            onClick={() => setUpdateRoleShowModal(false)}
           >
             <span>CERRAR</span>
           </LoadingButton>
@@ -236,4 +217,4 @@ const AddPromocionesModal = ({
     </Dialog>
   );
 };
-export default AddPromocionesModal;
+export default UpdateRoleModal;

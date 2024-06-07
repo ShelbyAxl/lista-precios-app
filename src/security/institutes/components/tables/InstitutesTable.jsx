@@ -12,6 +12,8 @@ import { getAllInstitutes } from "../../services/remote/get/getAllInstitutes";
 import { useDispatch, useSelector } from "react-redux";
 import { SET_ID_INSTITUTES } from "../../../redux/slices/institutesSlice";
 import AddInstituteModal from "../modals/AddInstituteModal";
+import UpdateInstituteModal from "../modals/UpdateInstituteModal";
+import {DeleteOneInstitute} from "../../services/remote/delete/DeleteOneInstitute";
 
 const InstitutesTable = () => {
   const [loadingTable, setLoadingTable] = useState(true);
@@ -19,6 +21,7 @@ const InstitutesTable = () => {
   const [selectedInstituteId, setSelectedInstituteId] = useState(null);
   const [rowSelection, setRowSelection] = useState({});
   const [addInstituteShowModal, setAddInstituteShowModal] = useState(false);
+  const [updateInstitutes, setUpdateInstitutes] = useState(false);
   const [DetailsInstituteShowModal, setDetailsInstituteShowModal] =
     useState(false);
   const [UpdateInstituteShowModal, setUpdateInstituteShowModal] =
@@ -104,12 +107,16 @@ const InstitutesTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton onClick={async () => setUpdateInstituteShowModal(true)}>
+            <IconButton>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton onClick={() => {
+              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                DeleteOneInstitute(selectedInstituteId);
+              }
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -140,8 +147,17 @@ const InstitutesTable = () => {
           onClose={() => setAddInstituteShowModal(false)}
         />
       </Dialog>
+      <Dialog open={UpdateInstituteShowModal}>
+        <UpdateInstituteModal
+          UpdateInstituteShowModal={UpdateInstituteShowModal}
+          setUpdateInstituteShowModal={setUpdateInstituteShowModal}
+          onClose={() => setUpdateInstituteShowModal(false)}
+          instituteId={selectedInstituteId}
+          updateInstitutes={updateInstitutes}
+        />
+        </Dialog>
     </Box>
   );
 };
 
-export default InstitutesTable;
+export default InstitutesTable; 

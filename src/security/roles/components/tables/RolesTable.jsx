@@ -13,6 +13,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { SET_ID_ROLES } from "../../../redux/slices/rolesSlice";
 //FIC: Modals
 import AddRolesModal from "../modals/AddRolesModal";
+import UpdateRolesModal from "../modals/UpdateRolesModal";
 //FIC: Columns Table Definition.
 //FIC: Table - FrontEnd.
 const RolesTable = () => {
@@ -23,6 +24,8 @@ const RolesTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddRoleShowModal, setAddRoleShowModal] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
+  const [UpdateInstituteShowModal, setUpdateInstituteShowModal] =
+    useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -45,9 +48,10 @@ const RolesTable = () => {
   const rol = useSelector((state) => state.roles.rolesDataArr);
   console.log(rol);
   const handleRowClick = (row) => {
-    setSelectedRoleId(row.original._id);
+    setSelectedRoleId(row.original.Condicion);
+    console.log(row.original.Condicion);
     dispatch(SET_ID_ROLES(row.original.Condicion));
-    
+
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -90,24 +94,20 @@ const RolesTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton
-              onClick={() => {
-                if (selectedRoleId !== null) {
-                  // Implement edit logic here
-                } else {
-                  alert("Por favor, seleccione un rol antes de editarlo");
-                }
-              }}
-            >
+            <IconButton onClick={() => setUpdateInstituteShowModal(true)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton  onClick={() => {
+              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                DeleteOneRol(selectedRoleId);
+              }
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Detalles">
+          <Tooltip title="Detalles">ñ
             <IconButton
               onClick={() => {
                 if (selectedRoleId !== null) {
@@ -133,6 +133,15 @@ const RolesTable = () => {
           AddRolesShowModal={AddRoleShowModal}
           setAddRolesShowModal={setAddRoleShowModal}
           onClose={() => setAddRoleShowModal(false)}
+        />
+      </Dialog>
+      <Dialog open={UpdateInstituteShowModal}>
+        <UpdateRolesModal
+          UpdateRoleShowModal={UpdateInstituteShowModal}
+          setUpdateRoleShowModal={setUpdateInstituteShowModal}
+          onClose={() => setUpdateInstituteShowModal(false)}
+          instituteId={instituto}
+          RoleId={selectedRoleId}
         />
       </Dialog>
     </Box>

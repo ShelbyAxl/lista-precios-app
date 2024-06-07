@@ -1,12 +1,13 @@
 import axios from "axios";
 
-export function AddOneInstitute(institute) {
-  console.log("<<EJECUTA>> API <<AddOneInstitute>> Requiere:", institute);
+export function AddOneNegocio(id, negocio) {
+
+  console.log(`${import.meta.env.VITE_GET_ALL}/${id}/negocios`);
   return new Promise((resolve, reject) => {
     axios
-      .post(import.meta.env.VITE_CAT_INSTITUTES_URL, institute)
+      .post(`${import.meta.env.VITE_GET_ALL}/${id}/negocios`, negocio)
       .then((response) => {
-        console.log("<<RESPONSE>> AddOneInstitute", institute);
+        console.log("<<RESPONSE>> AddOneInstitute", negocio);
         const data = response.data;
         console.log(response.status);
 

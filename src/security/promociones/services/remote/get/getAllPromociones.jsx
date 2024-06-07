@@ -13,6 +13,7 @@ export function getAllPromociones() {
               IdTipoPromoOK: promo.IdTipoPromoOK,
               Formula: promo.Formula,
               FechaExpiraIni: promo.FechaExpiraIni,
+              FechaExpiraFin: promo.FechaExpiraFin,
             };
           })
         );

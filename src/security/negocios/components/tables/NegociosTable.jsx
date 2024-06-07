@@ -10,18 +10,27 @@ import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllNegocios } from "../../services/remote/get/getAllNegocios";
 import AddNegocioModal from "../modals/AddNegocioModal";
+import UpdateNegocioModal from "../modals/UpdateNegocioModal";
+import DeleteOneNegocios from "../../services/remote/delete/DeleteOneNegocios"
+import { useSelector } from "react-redux";
 
 const NegociosTable = () => {
+
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+
   const [loadingTable, setLoadingTable] = useState(true);
   const [NegociosData, setNegociosData] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [AddNegocioShowModal, setAddNegocioShowModal] = useState(false);
   const [selectedNegocioId, setSelectedNegocioId] = useState(null);
+  const [UpdateNegocioShowModal, setUpdateNegocioShowModal] = useState(false);
+
+  const ids = [instituto, selectedNegocioId]
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const AllNegociosData = await getAllNegocios();
+        const AllNegociosData = await getAllNegocios(instituto);
         setNegociosData(AllNegociosData);
         setLoadingTable(false);
       } catch (error) {
@@ -32,10 +41,10 @@ const NegociosTable = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [AddNegocioShowModal]);
 
   const handleRowClick = (row) => {
-    setSelectedNegocioId(row.original._id);
+    setSelectedNegocioId(row.original.IdNegocioOK);
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -76,19 +85,17 @@ const NegociosTable = () => {
           </Tooltip>
           <Tooltip title="Editar">
             <IconButton
-              onClick={() => {
-                if (selectedNegocioId !== null) {
-                  // Implement edit logic here
-                } else {
-                  alert("Por favor, seleccione un negocio antes de editarlo");
-                }
-              }}
+              onClick={() => setUpdateNegocioShowModal(true)}
             >
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton onClick={() => {
+              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                DeleteOneNegocios(ids);
+              }
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -118,6 +125,16 @@ const NegociosTable = () => {
           AddNegocioShowModal={AddNegocioShowModal}
           setAddNegocioShowModal={setAddNegocioShowModal}
           onClose={() => setAddNegocioShowModal(false)}
+          instituto={instituto}
+        />
+      </Dialog>
+      <Dialog open={UpdateNegocioShowModal}>
+        <UpdateNegocioModal
+          UpdateNegocioShowModal={UpdateNegocioShowModal}
+          setUpdateNegocioShowModal={setUpdateNegocioShowModal}
+          onClose={() => setUpdateNegocioShowModal(false)}
+          instituteId={instituto}
+          negocioId={selectedNegocioId}
         />
       </Dialog>
     </Box>

@@ -10,18 +10,30 @@ import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllPromociones } from "../../services/remote/get/getAllPromociones";
 import AddPromocionesModal from "../modals/AddPromocionesModal";
+import UpdatePromocionesModal from "../modals/UpdatePromocionesModal";
+import { useDispatch, useSelector } from "react-redux";
+import { SET_ID_PROMOCIONES } from "../../../redux/slices/promocionesSlice";
 
 const PromocionesTable = () => {
+
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  const dispatch = useDispatch();
+
   const [loadingTable, setLoadingTable] = useState(true);
   const [PromocionesData, setPromocionesData] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [AddPromocionesShowModal, setAddPromocionesShowModal] = useState(false);
   const [selectedPromocionId, setSelectedPromocionId] = useState(null);
 
+  const [UpdatePromocionesShowModal, setUpdatePromocionesShowModal] =
+    useState(false);
+
   useEffect(() => {
     async function fetchData() {
       try {
         const AllPromocionesData = await getAllPromociones();
+        console.log(AllPromocionesData);
+        dispatch(SET_ID_PROMOCIONES(AllPromocionesData[0].IdTipoPromoOK));
         setPromocionesData(AllPromocionesData);
         setLoadingTable(false);
       } catch (error) {
@@ -35,7 +47,8 @@ const PromocionesTable = () => {
   }, []);
 
   const handleRowClick = (row) => {
-    setSelectedPromocionId(row.original._id);
+    setSelectedPromocionId(row.original.IdTipoPromoOK);
+    console.log(row.original.IdTipoPromoOK);
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -43,13 +56,30 @@ const PromocionesTable = () => {
 
   const PromocionesColumns = useMemo(
     () => [
-      { accessorKey: "DesPromo", header: "DESCUENTO DE PROMOCION", size: 150 },
       {
         accessorKey: "IdTipoPromoOK",
         header: "ID TIPO PROMOCION OK",
         size: 150,
       },
-      { accessorKey: "Formula", header: "FORMULA", size: 150 },
+      { 
+        accessorKey: "DesPromo", 
+        header: "DESCUENTO DE PROMOCION", 
+        size: 150 
+      },
+      { 
+        accessorKey: "Formula", 
+        header: "FORMULA", 
+        size: 150 
+      },
+      { 
+        accessorKey: "FechaExpiraIni", 
+        header: "FECHA INICIO", 
+        size: 150 
+      },{ 
+        accessorKey: "FechaExpiraFin", 
+        header: "FECHA FIN", 
+        size: 150 
+      },
     ],
     []
   );
@@ -57,13 +87,13 @@ const PromocionesTable = () => {
   const table = useMaterialReactTable({
     columns: PromocionesColumns,
     data: PromocionesData,
-    getRowId: (row) => row._id,
+    getRowId: (row) => row.IdTipoPromoOK,
     muiTableBodyRowProps: ({ row }) => ({
       onClick: () => handleRowClick(row),
-      selected: !!rowSelection[row.id],
+      selected: !!rowSelection[row.IdTipoPromoOK],
       sx: {
         cursor: "pointer",
-        backgroundColor: rowSelection[row.id] ? "lightgreen" : "white",
+        backgroundColor: rowSelection[row.IdTipoPromoOK] ? "lightgreen" : "white",
       },
     }),
     onRowSelectionChange: setRowSelection,
@@ -80,7 +110,7 @@ const PromocionesTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedPromocionId !== null) {
-                  // Implement edit logic here
+                  setUpdatePromocionesShowModal(true)
                 } else {
                   alert(
                     "Por favor, seleccione una promoción antes de editarla"
@@ -92,7 +122,11 @@ const PromocionesTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton  onClick={() => {
+              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                DeleteOnePromociones(selectedPromocionId);
+              }
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -124,6 +158,15 @@ const PromocionesTable = () => {
           onClose={() => setAddPromocionesShowModal(false)}
         />
       </Dialog>
+      <Dialog open={UpdatePromocionesShowModal}>
+        <UpdatePromocionesModal
+          UpdatePromocionesShowModal={UpdatePromocionesShowModal}
+          setUpdatePromocionesShowModal={setUpdatePromocionesShowModal}
+          onClose={() => setUpdatePromocionesShowModal(false)}
+          PromocionesId={selectedPromocionId}
+          instituteId={instituto}
+        />
+        </Dialog>
     </Box>
   );
 };

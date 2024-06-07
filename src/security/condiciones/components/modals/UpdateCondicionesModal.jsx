@@ -11,10 +11,8 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
-  InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,96 +23,89 @@ import * as Yup from "yup";
 //FIC: Helpers
 import { CondicionesValues } from "../../helpers/CondicionesValues";
 //FIC: Services
-import { AddOneCondiciones } from "../../services/remote/post/AddOneCondiciones";
-import { useSelector } from "react-redux";
-const AddCondicioneModal = ({
-  AddCondicioneShowModal,
-  setAddCondicioneShowModal,
-  idInstituto,
-  idPromocion,
+import { getOneCondiciones } from "../../services/remote/get/getOneCondiciones";
+import { UpdateOneCondiciones } from "../../services/remote/put/UpdateOneCondiciones";
+const UpdateCondicionesModal = ({
+  UpdateCondicionesShowModal,
+  setUpdateCondicionesShowModal,
+  instituteId,
+  promotionId,
+  selectedCondicionesId,
 }) => {
-  const instituto = useSelector((state) => state.institutes.institutesDataArr);
-  const promocion = useSelector(
-    (state) => state.promociones.PromocionesDataArr
-  );
-  const ids = [instituto, promocion];
+  const ids = [instituteId, promotionId, selectedCondicionesId];
+  console.log("<<ids>>", ids);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
 
-  useEffect(() => {}, []);
-
+  useEffect(() => {
+      getCondicionesData();
+  }, [instituteId]);
+  async function getCondicionesData() {
+    console.log("getCondicionesData is called");
+    try {
+      const instituteData = await getOneCondiciones(ids);
+      console.log("Condiciones Data:", instituteData);
+      formik.setValues({
+        IdInstitutoOK: instituteId,
+        IdTipoPromoOK: promotionId,
+        IdEtiquetaOK: instituteData.IdEtiquetaOK,
+        Etiqueta: instituteData.Etiqueta,
+        valor: instituteData.valor,
+        IdComparaValor: instituteData.IdComparaValor,
+        IdOpComparaValores: instituteData.IdOpComparaValores,
+        IdOpLogicoEtiqueta: instituteData.IdOpLogicoEtiqueta,
+      });
+    } catch (e) {
+      console.error("Error al obtener los datos del instituto:", e);
+    }
+  }
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
-      IdInstitutoOK: idInstituto,
-      IdTipoPromoOK: idPromocion,
-      IdEtiquetaOK: "",
-      Etiqueta: "",
-      valor: "",
-      IdComparaValor: "",
-      IdOpComparaValores: "",
-      IdOpLogicoEtiqueta: "",
+        IdInstitutoOK: "",
+        IdTipoPromoOK: "",
+        IdEtiquetaOK: "",
+        Etiqueta: "",
+        IdOpComparaValores: "",
+        IdOpLogicoEtiqueta: "",
     },
     validationSchema: Yup.object({
-      IdInstitutoOK: Yup.string().required("Campo requerido"),
-      IdTipoPromoOK: Yup.string().required("Campo requerido"),
-      IdEtiquetaOK: Yup.string().required("Campo requerido"),
-      Etiqueta: Yup.string().required("Campo requerido"),
-      valor: Yup.string().required("Campo requerido"),
-      IdComparaValor: Yup.string().required("Campo requerido"),
-      IdOpComparaValores: Yup.string().required("Campo requerido"),
-      IdOpLogicoEtiqueta: Yup.string().required("Campo requerido"),
+        IdInstitutoOK: Yup.string().required("Campo requerido"),
+        IdTipoPromoOK: Yup.string().required("Campo requerido"),
+        IdEtiquetaOK: Yup.string().required("Campo requerido"),
+        Etiqueta: Yup.string().required("Campo requerido"),
+        IdOpComparaValores: Yup.string().required("Campo requerido"),
+        IdOpLogicoEtiqueta: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
-      //FIC: mostramos el Loading.
+      console.log("FIC: entro al onSubmit");
       setLoading(true);
-
-      //FIC: notificamos en consola que si se llamo y entro al evento.
       console.log(
         "FIC: entro al onSubmit despues de hacer click en boton Guardar"
       );
-      //FIC: reiniciamos los estados de las alertas de exito y error.
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
         values = {
-          IdEtiquetaOK: values.IdEtiquetaOK,
-          Etiqueta: values.Etiqueta,
-          Valores: [
-            { 
-              valor: values.valor, 
-              IdComparaValor: values.IdComparaValor
-           },
-          ],
-          IdOpComparaValores: values.IdOpComparaValores,
-          IdOpLogicoEtiqueta: values.IdOpLogicoEtiqueta
-        };
+            IdEtiquetaOK: values.IdEtiquetaOK,
+            Etiqueta: values.Etiqueta,
+            IdOpComparaValores: values.IdOpComparaValores,
+            IdOpLogicoEtiqueta: values.IdOpLogicoEtiqueta
+          };
         const Condiciones = CondicionesValues(values);
-        //FIC: mandamos a consola los datos extraidos
         console.log("<<Condiciones>>", Condiciones);
-        //FIC: llamar el metodo que desencadena toda la logica
-        //para ejecutar la API "AddOneCondiciones" y que previamente
-        //construye todo el JSON de la coleccion de Institutos para
-        //que pueda enviarse en el "body" de la API y determinar si
-        //la inserción fue o no exitosa.
-        await AddOneCondiciones(ids, Condiciones);
-        //FIC: si no hubo error en el metodo anterior
-        //entonces lanzamos la alerta de exito.
-        setMensajeExitoAlert("Instituto fue creado y guardado Correctamente");
-        //FIC: falta actualizar el estado actual (documentos/data) para que
-        //despues de insertar el nuevo instituto se visualice en la tabla.
-        //fetchDataCondicione();
+        await UpdateOneCondiciones(ids, Condiciones);
+        setMensajeExitoAlert(
+          "Instituto fue actualizado y guardado Correctamente"
+        );
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo crear el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar el Instituto");
       }
-
-      //FIC: ocultamos el Loading.
       setLoading(false);
     },
   });
-  //FIC: props structure for TextField Control.
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -124,15 +115,15 @@ const AddCondicioneModal = ({
   };
   return (
     <Dialog
-      open={AddCondicioneShowModal}
-      onClose={() => setAddCondicioneShowModal(false)}
+      open={UpdateCondicionesShowModal}
+      onClose={() => setUpdateCondicionesShowModal(false)}
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Actualizar Instituto</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -142,7 +133,6 @@ const AddCondicioneModal = ({
         >
           {/* FIC: Campos de captura o selección */}
           <TextField
-            disabled
             id="IdInstitutoOK"
             label="IdInstitutoOK*"
             value={formik.values.IdInstitutoOK}
@@ -157,7 +147,6 @@ const AddCondicioneModal = ({
             }
           />
           <TextField
-            disabled
             id="IdTipoPromoOK"
             label="IdTipoPromoOK*"
             value={formik.values.IdTipoPromoOK}
@@ -194,29 +183,6 @@ const AddCondicioneModal = ({
             helperText={formik.touched.Etiqueta && formik.errors.Etiqueta}
           />
           <TextField
-            id="valor"
-            label="valor*"
-            value={formik.values.valor}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={formik.touched.valor && Boolean(formik.errors.valor)}
-            helperText={formik.touched.valor && formik.errors.valor}
-          />
-          <TextField
-            id="IdComparaValor"
-            label="IdComparaValor*"
-            value={formik.values.IdComparaValor}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdComparaValor &&
-              Boolean(formik.errors.IdComparaValor)
-            }
-            helperText={
-              formik.touched.IdComparaValor && formik.errors.IdComparaValor
-            }
-          />
-          <TextField
             id="IdOpComparaValores"
             label="IdOpComparaValores*"
             value={formik.values.IdOpComparaValores}
@@ -245,7 +211,7 @@ const AddCondicioneModal = ({
               formik.touched.IdOpLogicoEtiqueta &&
               formik.errors.IdOpLogicoEtiqueta
             }
-          />
+          />  
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
@@ -269,7 +235,7 @@ const AddCondicioneModal = ({
             loadingPosition="start"
             startIcon={<CloseIcon />}
             variant="outlined"
-            onClick={() => setAddCondicioneShowModal(false)}
+            onClick={() => setUpdateCondicionesShowModal(false)}
           >
             <span>CERRAR</span>
           </LoadingButton>
@@ -290,4 +256,4 @@ const AddCondicioneModal = ({
     </Dialog>
   );
 };
-export default AddCondicioneModal;
+export default UpdateCondicionesModal;

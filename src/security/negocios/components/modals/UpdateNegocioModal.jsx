@@ -11,10 +11,8 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
-  InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,19 +23,37 @@ import * as Yup from "yup";
 //FIC: Helpers
 import { NegocioValues } from "../../helpers/NegocioValues";
 //FIC: Services
-import { AddOneNegocio } from "../../services/remote/post/AddOneNegocio";
-const AddNegocioModal = ({
-  AddNegocioShowModal,
-  setAddNegocioShowModal,
-  instituto,
+import { getOneNegocio } from "../../../negocios/services/remote/get/getOneNegocio";
+import { UpdateOneNegocio } from "../../services/remote/put/UpdateOneNegocio";
+const UpdateNegocioModal = ({
+  UpdateNegocioShowModal,
+  setUpdateNegocioShowModal,
+  instituteId,
+  negocioId
 }) => {
+  
+  const ids = [instituteId, negocioId];
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
-  }, []);
-
+    if (negocioId) {
+      getNegocioData();
+    }
+  }, [negocioId]);
+  async function getNegocioData() {
+    console.log("getNegocioData is called");
+    try {
+      const negocioData = await getOneNegocio(ids);
+      console.log("Negocio Data:", negocioData);
+      formik.setValues({
+        IdNegocioOK: negocioData.IdNegocioOK,
+      });
+    } catch (e) {
+      console.error("Error al obtener los datos del instituto:", e);
+    }
+  }
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
@@ -47,42 +63,27 @@ const AddNegocioModal = ({
       IdNegocioOK: Yup.string().required("Requerido"),
     }),
     onSubmit: async (values) => {
-      //FIC: mostramos el Loading.
+      console.log("FIC: entro al onSubmit");
       setLoading(true);
-
-      //FIC: notificamos en consola que si se llamo y entro al evento.
       console.log(
         "FIC: entro al onSubmit despues de hacer click en boton Guardar"
       );
-      //FIC: reiniciamos los estados de las alertas de exito y error.
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
         const Negocio = NegocioValues(values);
-        //FIC: mandamos a consola los datos extraidos
         console.log("<<Negocio>>", Negocio);
-        //FIC: llamar el metodo que desencadena toda la logica
-        //para ejecutar la API "AddOneNegocio" y que previamente
-        //construye todo el JSON de la coleccion de Institutos para
-        //que pueda enviarse en el "body" de la API y determinar si
-        //la inserción fue o no exitosa.
-        await AddOneNegocio(instituto, Negocio);
-        //FIC: si no hubo error en el metodo anterior
-        //entonces lanzamos la alerta de exito.
-        setMensajeExitoAlert("Instituto fue creado y guardado Correctamente");
-        //FIC: falta actualizar el estado actual (documentos/data) para que
-        //despues de insertar el nuevo instituto se visualice en la tabla.
-        //fetchDataNegocio();
+        await UpdateOneNegocio(ids, Negocio);
+        setMensajeExitoAlert(
+          "Instituto fue actualizado y guardado Correctamente"
+        );
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo crear el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar el Instituto");
       }
-
-      //FIC: ocultamos el Loading.
       setLoading(false);
     },
   });
-  //FIC: props structure for TextField Control.
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -92,15 +93,15 @@ const AddNegocioModal = ({
   };
   return (
     <Dialog
-      open={AddNegocioShowModal}
-      onClose={() => setAddNegocioShowModal(false)}
+      open={UpdateNegocioShowModal}
+      onClose={() => setUpdateNegocioShowModal(false)}
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Actualizar Instituto</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -112,9 +113,7 @@ const AddNegocioModal = ({
           <TextField
             id="IdNegocioOK"
             label="IdNegocioOK*"
-            value={formik.values.IdNegocioOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
+            {...formik.getFieldProps("IdNegocioOK")}
             error={
               formik.touched.IdNegocioOK &&
               Boolean(formik.errors.IdNegocioOK)
@@ -123,7 +122,6 @@ const AddNegocioModal = ({
               formik.touched.IdNegocioOK && formik.errors.IdNegocioOK
             }
           />
-          
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
@@ -147,7 +145,7 @@ const AddNegocioModal = ({
             loadingPosition="start"
             startIcon={<CloseIcon />}
             variant="outlined"
-            onClick={() => setAddNegocioShowModal(false)}
+            onClick={() => setUpdateNegocioShowModal(false)}
           >
             <span>CERRAR</span>
           </LoadingButton>
@@ -168,4 +166,4 @@ const AddNegocioModal = ({
     </Dialog>
   );
 };
-export default AddNegocioModal;
+export default UpdateNegocioModal;

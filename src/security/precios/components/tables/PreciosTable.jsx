@@ -3,7 +3,7 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import { Box, Stack, Tooltip, IconButton, Dialog } from "@mui/material";
+import { Box, Stack, Tooltip, IconButton, Dialog, Select } from "@mui/material";
 import { useSelector } from "react-redux";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
@@ -11,17 +11,17 @@ import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllPrecios } from "../../services/remote/get/getAllPrecios";
 import AddPrecioModal from "../modals/AddPrecioModal";
+import UpdatePrecioModal from "../modals/UpdatePrecioModal";
+import { DeleteOnePrecio } from "../../services/remote/delete/DeleteOnePrecio";
 
 const PreciosTable = () => {
   const id = useSelector((state) => state.institutes.institutesDataArr);
-  console.log(id);
-
   const [loadingTable, setLoadingTable] = useState(true);
   const [PreciosData, setPreciosData] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [AddPrecioShowModal, setAddPrecioShowModal] = useState(false);
   const [selectedPrecioId, setSelectedPrecioId] = useState(null);
-
+  const [UpdatePrecioShowModal, setUpdatePrecioShowModal] = useState(false);
   useEffect(() => {
     async function fetchData() {
       try {
@@ -31,7 +31,8 @@ const PreciosTable = () => {
 
         // Set the first row as selected
         if (AllPreciosData.length > 0) {
-          setRowSelection({ [AllPreciosData[0]._id]: true });
+          setRowSelection({ [AllPreciosData[0].IdProdServOK]: true });
+
         }
       } catch (error) {
         console.error(
@@ -44,11 +45,33 @@ const PreciosTable = () => {
   }, [id]);
 
   const handleRowClick = (row) => {
-    setSelectedPrecioId(row.original._id);
+    setSelectedPrecioId(row.original.IdProdServOK);
+    console.log(row.original.IdProdServOK);
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
   };
+
+  const handleDelete = async () => {
+    if (selectedPrecioId) {
+      if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+        try {
+          const response = await DeleteOnePrecio([id, selectedPrecioId]);
+          console.log("Precio eliminado con éxito", response);
+          // Actualizar la tabla después de eliminar
+          const updatedPreciosData = PreciosData.filter(precio => precio.IdProdServOK !== selectedPrecioId);
+          setPreciosData(updatedPreciosData);
+          setRowSelection({});
+          setSelectedPrecioId(null);
+        } catch (error) {
+          console.error("Error al eliminar el precio:", error);
+        }
+      }
+    } else {
+      alert("Por favor, selecciona un precio para eliminar.");
+    }
+  };
+  
 
   const PreciosColumns = useMemo(
     () => [
@@ -73,13 +96,13 @@ const PreciosTable = () => {
   const table = useMaterialReactTable({
     columns: PreciosColumns,
     data: PreciosData,
-    getRowId: (row) => row._id,
+    getRowId: (row) => row.IdProdServOK,
     muiTableBodyRowProps: ({ row }) => ({
       onClick: () => handleRowClick(row),
-      selected: !!rowSelection[row.id],
+      selected: !!rowSelection[row.IdProdServOK],
       sx: {
         cursor: "pointer",
-        backgroundColor: rowSelection[row.id] ? "lightgreen" : "white",
+        backgroundColor: rowSelection[row.IdProdServOK] ? "lightgreen" : "white",
       },
     }),
     onRowSelectionChange: setRowSelection,
@@ -93,12 +116,12 @@ const PreciosTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton>
+            <IconButton onClick={() => setUpdatePrecioShowModal(true)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton onClick={() => handleDelete()}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -122,6 +145,15 @@ const PreciosTable = () => {
           onClose={() => setAddPrecioShowModal(false)}
         />
       </Dialog>
+      <Dialog open={UpdatePrecioShowModal}>
+        <UpdatePrecioModal
+          UpdatePreciosShowModal={UpdatePrecioShowModal}
+          setUpdatePreciosShowModal={setUpdatePrecioShowModal}
+          onClose={() => setUpdatePrecioShowModal(false)}
+          PrecioId={selectedPrecioId}
+          instituteId={id}
+        />
+        </Dialog>
     </Box>
   );
 };

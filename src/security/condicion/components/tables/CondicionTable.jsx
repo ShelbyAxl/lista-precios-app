@@ -10,13 +10,18 @@ import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllCondicion } from "../../services/remote/get/getAllCondicion";
 import AddCondicionModal from "../modals/AddCondicionModal";
+import UpdateCondicionModal from "../modals/UpdateCondicionModal";
+import { useSelector } from "react-redux";
 
 const CondicionTable = () => {
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  const roles = useSelector((state) => state.roles.rolesDataArr);
   const [loadingTable, setLoadingTable] = useState(true);
   const [CondicionData, setCondicionData] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [AddCondicionShowModal, setAddCondicionShowModal] = useState(false);
   const [selectedCondicionId, setSelectedCondicionId] = useState(null);
+  const [UpdateCondicionShowModal, setUpdateCondicionShowModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -35,7 +40,7 @@ const CondicionTable = () => {
   }, []);
 
   const handleRowClick = (row) => {
-    setSelectedCondicionId(row.original._id);
+    setSelectedCondicionId(row.original.IdTipoCondicionOK);
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -51,11 +56,6 @@ const CondicionTable = () => {
       {
         accessorKey: "IdTipoOperadorOK",
         header: "ID TIPO OPERADOR OK",
-        size: 150,
-      },
-      {
-        accessorKey: "Valor",
-        header: "VALOR",
         size: 150,
       },
       {
@@ -92,20 +92,18 @@ const CondicionTable = () => {
           <Tooltip title="Editar">
             <IconButton
               onClick={() => {
-                if (selectedCondicionId !== null) {
-                  // Implement edit logic here
-                } else {
-                  alert(
-                    "Por favor, seleccione una condición antes de editarla"
-                  );
-                }
+                setUpdateCondicionShowModal(true)
               }}
             >
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton  onClick={() => {
+              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                DeleteOneCondicion(selectedCondicionId);
+              }
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -135,6 +133,16 @@ const CondicionTable = () => {
           AddCondicionShowModal={AddCondicionShowModal}
           setAddCondicionShowModal={setAddCondicionShowModal}
           onClose={() => setAddCondicionShowModal(false)}
+        />
+      </Dialog>
+      <Dialog open={UpdateCondicionShowModal}>
+      <UpdateCondicionModal
+          UpdateCondicionShowModal={UpdateCondicionShowModal}
+          setUpdateCondicionShowModal={setUpdateCondicionShowModal}
+          onClose={() => setUpdateCondicionShowModal(false)}
+          instituteId={instituto}
+          rolesId={roles}
+          condicionId={selectedCondicionId}
         />
       </Dialog>
     </Box>

@@ -11,10 +11,8 @@ import {
   Alert,
   FormControlLabel,
   Checkbox,
-  InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,24 +23,39 @@ import * as Yup from "yup";
 //FIC: Helpers
 import { PromocionesValues } from "../../helpers/PromocionesValues";
 //FIC: Services
-import { AddOnePromociones } from "../../services/remote/post/AddOneInstitute";
-import { useSelector } from "react-redux";
-const AddPromocionesModal = ({
-  AddPromocionesShowModal,
-  setAddPromocionesShowModal,
+import { getOnePromociones } from "../../services/remote/get/getOnePromocion";
+import { putPromociones } from "../../services/remote/put/UpdateOnePromocion";
+const UpdatePromocionesModal = ({
+  UpdatePromocionesShowModal,
+  setUpdatePromocionesShowModal,
+  instituteId,
+  PromocionesId,
 }) => {
-
-  const instituto = useSelector((state) => state.institutes.institutesDataArr);
-  
+  const ids = [instituteId, PromocionesId];
+  console.log("<<ids>>", ids);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
-  
-  useEffect(() => {
-    console.log(instituto);
-    
-  }, []);
 
+  useEffect(() => {
+      getPromocionesData();
+  }, [PromocionesId]);
+  async function getPromocionesData() {
+    console.log("getPromocionesData is called");
+    try {
+      const PromocionesData = await getOnePromociones(ids);
+      console.log("Promociones Data:", PromocionesData);
+      formik.setValues({
+        IdTipoPromoOK: PromocionesData.IdTipoPromoOK,
+        DesPromo: PromocionesData.DesPromo,
+        Formula: PromocionesData.Formula,
+        FechaExpiraIni: PromocionesData.FechaExpiraIni,
+        FechaExpiraFin: PromocionesData.FechaExpiraFin,
+      });
+    } catch (e) {
+      console.error("Error al obtener los datos del instituto:", e);
+    }
+  }
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
@@ -60,42 +73,27 @@ const AddPromocionesModal = ({
       FechaExpiraFin: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
-      //FIC: mostramos el Loading.
+      console.log("FIC: entro al onSubmit");
       setLoading(true);
-
-      //FIC: notificamos en consola que si se llamo y entro al evento.
       console.log(
         "FIC: entro al onSubmit despues de hacer click en boton Guardar"
       );
-      //FIC: reiniciamos los estados de las alertas de exito y error.
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
         const Promociones = PromocionesValues(values);
-        //FIC: mandamos a consola los datos extraidos
         console.log("<<Promociones>>", Promociones);
-        //FIC: llamar el metodo que desencadena toda la logica
-        //para ejecutar la API "AddOnePromociones" y que previamente
-        //construye todo el JSON de la coleccion de Institutos para
-        //que pueda enviarse en el "body" de la API y determinar si
-        //la inserción fue o no exitosa.
-        await AddOnePromociones(instituto, Promociones);
-        //FIC: si no hubo error en el metodo anterior
-        //entonces lanzamos la alerta de exito.
-        setMensajeExitoAlert("Instituto fue creado y guardado Correctamente");
-        //FIC: falta actualizar el estado actual (documentos/data) para que
-        //despues de insertar el nuevo instituto se visualice en la tabla.
-        //fetchDataPromociones();
+        await putPromociones(ids, Promociones);
+        setMensajeExitoAlert(
+          "Instituto fue actualizado y guardado Correctamente"
+        );
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo crear el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar el Instituto");
       }
-
-      //FIC: ocultamos el Loading.
       setLoading(false);
     },
   });
-  //FIC: props structure for TextField Control.
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -105,15 +103,15 @@ const AddPromocionesModal = ({
   };
   return (
     <Dialog
-      open={AddPromocionesShowModal}
-      onClose={() => setAddPromocionesShowModal(false)}
+      open={UpdatePromocionesShowModal}
+      onClose={() => setUpdatePromocionesShowModal(false)}
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Actualizar Instituto</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -215,7 +213,7 @@ const AddPromocionesModal = ({
             loadingPosition="start"
             startIcon={<CloseIcon />}
             variant="outlined"
-            onClick={() => setAddPromocionesShowModal(false)}
+            onClick={() => setUpdatePromocionesShowModal(false)}
           >
             <span>CERRAR</span>
           </LoadingButton>
@@ -236,4 +234,4 @@ const AddPromocionesModal = ({
     </Dialog>
   );
 };
-export default AddPromocionesModal;
+export default UpdatePromocionesModal;

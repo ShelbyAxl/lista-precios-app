@@ -10,18 +10,26 @@ import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllCondiciones } from "../../services/remote/get/getAllCondiciones";
 import AddCondicionesModal from "../modals/AddCondicionesModal";
+import UpdateCondicionesModal from "../modals/UpdateCondicionesModal";
+import { useSelector } from "react-redux";
 
 const CondicionessTable = () => {
+
+  const instituto  = useSelector((state) => state.institutes.institutesDataArr);
+  const promociones = useSelector((state) => state.promociones.PromocionesDataArr);
+  const ids = [instituto, promociones];
+
   const [loadingTable, setLoadingTable] = useState(true);
   const [CondicionessData, setCondicionessData] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [AddCondicionesShowModal, setAddCondicionesShowModal] = useState(false);
   const [selectedCondicionId, setSelectedCondicionId] = useState(null);
+  const [UpdateCondicionesShowModal, setUpdateCondicionesShowModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const AllCondicionessData = await getAllCondiciones();
+        const AllCondicionessData = await getAllCondiciones(ids);
         setCondicionessData(AllCondicionessData);
         setLoadingTable(false);
       } catch (error) {
@@ -35,7 +43,8 @@ const CondicionessTable = () => {
   }, []);
 
   const handleRowClick = (row) => {
-    setSelectedCondicionId(row.original._id);
+    setSelectedCondicionId(row.original.IdEtiquetaOK);
+    console.log(row.original.IdEtiquetaOK);
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -43,19 +52,14 @@ const CondicionessTable = () => {
 
   const CondicionessColumns = useMemo(
     () => [
-      { accessorKey: "DesPromo", header: "ID PROMOCION", size: 150 },
-      { accessorKey: "IdEtiqueta", header: "ID ETIQUETA", size: 150 },
-      { accessorKey: "Etiqueta", header: "ETIQUETA", size: 150 },
-      { accessorKey: "Valor", header: "VALOR", size: 150 },
-      { accessorKey: "IdComparaValor", header: "ID COMPARADOR", size: 150 },
-      {
-        accessorKey: "IdOpComparaValores",
-        header: "COMPARA VALORES",
-        size: 150,
-      },
+      { Cell: ({ row }) => instituto, accessorKey: "instituto", header: "IdInstitutoOK" },
+      { Cell: ({ row }) => promociones, accessorKey: "promociones", header: "IdPromocionOK" },
+      { accessorKey: "IdEtiquetaOK", header: "ID PROMOCION", size: 150 },
+      { accessorKey: "Etiqueta", header: "ID ETIQUETA", size: 150 },
+      { accessorKey: "IdOpComparaValores", header: "ID COMPARADOR", size: 150 },
       {
         accessorKey: "IdOpLogicoEtiqueta",
-        header: "OP LOGICO ETIQUETA",
+        header: "COMPARA VALORES",
         size: 150,
       },
     ],
@@ -88,7 +92,7 @@ const CondicionessTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedCondicionId !== null) {
-                  // Implement edit logic here
+                  setUpdateCondicionesShowModal(true)
                 } else {
                   alert(
                     "Por favor, seleccione una condición antes de editarla"
@@ -100,7 +104,11 @@ const CondicionessTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton>
+            <IconButton  oonClick={() => {
+              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                DeleteOneCondiciones(selectedCondicionId);
+              }
+            }}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -127,11 +135,23 @@ const CondicionessTable = () => {
       <MaterialReactTable table={table} />
       <Dialog open={AddCondicionesShowModal}>
         <AddCondicionesModal
-          AddCondicionesShowModal={AddCondicionesShowModal}
-          setAddCondicionesShowModal={setAddCondicionesShowModal}
+          AddCondicioneShowModal={AddCondicionesShowModal}
+          setAddCondicioneShowModal={setAddCondicionesShowModal}
+          idInstituto={instituto}
+          idPromocion={promociones}
           onClose={() => setAddCondicionesShowModal(false)}
         />
       </Dialog>
+      <Dialog open={UpdateCondicionesShowModal}>
+        <UpdateCondicionesModal
+          UpdateCondicionesShowModal={UpdateCondicionesShowModal}
+          setUpdateCondicionesShowModal={setUpdateCondicionesShowModal}
+          onClose={() => setUpdateCondicionesShowModal(false)}
+          instituteId={instituto}
+          promotionId={promociones}
+          selectedCondicionesId={selectedCondicionId}
+        />
+        </Dialog>
     </Box>
   );
 };

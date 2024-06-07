@@ -1,15 +1,14 @@
 import axios from "axios";
 
-export function AddOneRoles(id, roles) {
-  console.log(`${import.meta.env.VITE_GET_ALL}/${id}/roles`);
+export function AddOneRoles(ids, roles) {
+  console.log(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}`);
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_GET_ALL}/${id}/roles`, roles)
+      .post(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}`, roles)
       .then((response) => {
         console.log("<<RESPONSE>> AddOneRoles", roles);
         const data = response.data;
         console.log(response.status);
-
         if (response.status === 200 || response.status === 201) {
           resolve(data);
         } else {

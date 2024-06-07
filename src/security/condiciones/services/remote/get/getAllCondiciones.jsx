@@ -1,39 +1,36 @@
 import axios from "axios";
 
-export function getAllCondiciones() {
+export function getAllCondiciones(ids) {
   return new Promise((resolve, reject) => {
     axios
-      .get(import.meta.env.VITE_GET_ALL)
+      .get(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/promociones/${ids[1]}/condiciones`)
       .then((response) => {
         const data = response.data; 
-        const condiciones = data.flatMap((item) =>
-          item.promociones.flatMap((promo) =>  {
-            return {
-              DesPromo: promo.DesPromo,
-              IdEtiqueta: promo.condiciones.IdEtiqueta,
-              Etiqueta: promo.condiciones.Etiqueta,
-              IdComparaValor: promo.condiciones.IdComparaValor,
-              IdOpComparaValores: promo.condiciones.IdOpComparaValores,
-              IdOpLogicoEtiqueta: promo.condiciones.IdOpLogicoEtiqueta,
-            };
-          }
-          ) 
-        );
-        console.log(condiciones);
+        console.log(data);
+        // const condiciones = {
+        //   IdEtiquetaOK: data.IdEtiquetaOK,
+        //   Etiqueta: data.Etiqueta,
+        //   valor: data.Valores.valor,
+        //   IdComparaValor: data.Valores.IdComparaValor,
+        //   IdOpComparaValores: data.IdOpComparaValores,
+        //   IdOpLogicoEtiqueta: data.IdOpLogicoEtiqueta,
+        // }
+        console.log(data);
+        // console.log(condiciones);
         if (response.status === 200) {
           if (data.length === 0) {
             console.info("🛈 No se encontraron documentos en <<cat_Condiciones>>");
             resolve([]);
           } else {
             console.log("Colección: <<cat_Condiciones>>", data);
-            resolve(condiciones); // Resuelve la promesa con el arreglo de Condiciones
+            resolve(data); // Resuelve la promesa con el arreglo de Condiciones
           }
         } else {
           console.error(
             "No se pudo realizar correctamente la petición <<getAllCondiciones - Services>>",
             data
           );
-          reject(condiciones); // Rechaza la promesa con la respuesta si no fue exitosa
+          reject(data); // Rechaza la promesa con la respuesta si no fue exitosa
         }
       })
       .catch((error) => {
