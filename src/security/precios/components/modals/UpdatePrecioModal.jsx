@@ -9,14 +9,12 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  Select,
-  MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
+import { useSelector } from "react-redux";
 //FIC: Formik - Yup
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -25,40 +23,70 @@ import { PreciosValues } from "../../helpers/PrecioValues";
 //FIC: Services
 import { putPrecio } from "../../services/remote/put/UpdateOnePrecio";
 import { getOnePrecio } from "../../services/remote/get/getOnePrecio";
+import { getPrecios } from "../../services/remote/get/getPrecios";
+import { getAllInstitutes } from "../../../institutes/services/remote/get/getAllInstitutes";
+
 const UpdatePreciosModal = ({
   UpdatePreciosShowModal,
   setUpdatePreciosShowModal,
   instituteId,
   PrecioId,
+  updatePrecios,
 }) => {
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  console.log(instituto);
+
   const ids = [instituteId, PrecioId];
-  console.log(ids);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [listas, setListas] = useState([]);
 
   useEffect(() => {
-    if (instituteId) {
+    async function fetchProductos() {
+      try {
+        const productos = await getPrecios();
+        setProductos(productos);
+      } catch (error) {
+        console.error("Error fetching productos:", error);
+      }
+    }
+
+    async function fetchListas() {
+      try {
+        const listas = await getAllInstitutes();
+        setListas(listas);
+      } catch (error) {
+        console.error("Error fetching listas:", error);
+      }
+    }
+
+    fetchProductos();
+    fetchListas();
+  }, []);
+
+  useEffect(() => {
+    if (instituteId && PrecioId) {
       getPreciosData();
     }
-  }, [instituteId]);
+  }, [instituteId, PrecioId]);
+
   async function getPreciosData() {
-    console.log("getPreciosData is called");
     try {
-      const instituteData = await getOnePrecio(instituteId, PrecioId);
-      console.log("Precios Data:", instituteData);
+      const precioData = await getOnePrecio(instituteId, PrecioId);
       formik.setValues({
-        IdProdServOK: instituteData.IdProdServOK,
-        PresentacionDelProducto: instituteData.PresentacionDelProducto,
-        IdTipoFormulaOK: instituteData.IdTipoFormulaOK,
-        Formula: instituteData.Formula,
-        Precio: instituteData.Precio,
+        IdProdServOK: precioData.IdProdServOK,
+        PresentacionDelProducto: precioData.PresentacionDelProducto,
+        IdTipoFormulaOK: precioData.IdTipoFormulaOK,
+        Formula: precioData.Formula,
+        Precio: precioData.Precio,
       });
     } catch (e) {
-      console.error("Error al obtener los datos del instituto:", e);
+      console.error("Error al obtener los datos del precio:", e);
     }
   }
-  //FIC: Definition Formik y Yup.
+
   const formik = useFormik({
     initialValues: {
       IdProdServOK: "",
@@ -75,27 +103,22 @@ const UpdatePreciosModal = ({
       Precio: Yup.number().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
-      console.log("FIC: entro al onSubmit");
       setLoading(true);
-      console.log(
-        "FIC: entro al onSubmit despues de hacer click en boton Guardar"
-      );
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
-        const Precios = PreciosValues(values);
-        console.log("<<Precios>>", Precios);
-        await putPrecio(ids, Precios);
-        setMensajeExitoAlert(
-          "Instituto fue actualizado y guardado Correctamente"
-        );
+        const Precio = PreciosValues(values);
+        await putPrecio(ids, Precio);
+        setMensajeExitoAlert("Precio fue actualizado y guardado Correctamente");
+        updatePrecios();
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo actualizar el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar el Precio");
       }
       setLoading(false);
     },
   });
+
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -103,6 +126,7 @@ const UpdatePreciosModal = ({
     margin: "dense",
     disabled: !!mensajeExitoAlert,
   };
+
   return (
     <Dialog
       open={UpdatePreciosShowModal}
@@ -110,94 +134,110 @@ const UpdatePreciosModal = ({
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
-        {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Actualizar Instituto</strong>
+            <strong>Actualizar Precio</strong>
           </Typography>
         </DialogTitle>
-        {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
         <DialogContent
           sx={{ display: "flex", flexDirection: "column" }}
           dividers
         >
-          {/* FIC: Campos de captura o selección */}
-          <TextField
+          <Autocomplete
             id="IdProdServOK"
-            label="IdProdServOK*"
-            value={formik.values.IdProdServOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdProdServOK &&
-              Boolean(formik.errors.IdProdServOK)
-            }
-            helperText={
-              formik.touched.IdProdServOK && formik.errors.IdProdServOK
+            options={productos}
+            getOptionLabel={(option) => option.IdProdServOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdProdServOK",
+                newValue ? newValue.IdProdServOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdProdServOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdProdServOK &&
+                  Boolean(formik.errors.IdProdServOK)
+                }
+                helperText={
+                  formik.touched.IdProdServOK && formik.errors.IdProdServOK
+                }
+              />
+            )}
+            value={
+              productos.find(
+                (option) => option.IdProdServOK === formik.values.IdProdServOK
+              ) || null
             }
           />
           <TextField
             id="PresentacionDelProducto"
             label="PresentacionDelProducto*"
             value={formik.values.PresentacionDelProducto}
-            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
               formik.touched.PresentacionDelProducto &&
               Boolean(formik.errors.PresentacionDelProducto)
             }
             helperText={
-              formik.touched.PresentacionDelProducto && formik.errors.PresentacionDelProducto
+              formik.touched.PresentacionDelProducto &&
+              formik.errors.PresentacionDelProducto
             }
           />
-          <TextField
+          <Autocomplete
             id="IdTipoFormulaOK"
-            label="IdTipoFormulaOK*"
-            value={formik.values.IdTipoFormulaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoFormulaOK &&
-              Boolean(formik.errors.IdTipoFormulaOK)
-            }
-            helperText={
-              formik.touched.IdTipoFormulaOK && formik.errors.IdTipoFormulaOK
+            options={listas}
+            getOptionLabel={(option) => option.IdTipoFormulaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoFormulaOK",
+                newValue ? newValue.IdTipoFormulaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoFormulaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoFormulaOK &&
+                  Boolean(formik.errors.IdTipoFormulaOK)
+                }
+                helperText={
+                  formik.touched.IdTipoFormulaOK &&
+                  formik.errors.IdTipoFormulaOK
+                }
+              />
+            )}
+            value={
+              listas.find(
+                (option) =>
+                  option.IdTipoFormulaOK === formik.values.IdTipoFormulaOK
+              ) || null
             }
           />
           <TextField
             id="Formula"
             label="Formula*"
             value={formik.values.Formula}
-            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.Formula &&
-              Boolean(formik.errors.Formula)
-            }
-            helperText={
-              formik.touched.Formula && formik.errors.Formula
-            }
+            error={formik.touched.Formula && Boolean(formik.errors.Formula)}
+            helperText={formik.touched.Formula && formik.errors.Formula}
           />
           <TextField
             id="Precio"
             label="Precio*"
             value={formik.values.Precio}
-            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.Precio &&
-              Boolean(formik.errors.Precio)
-            }
-            helperText={
-              formik.touched.Precio && formik.errors.Precio
-            }
+            error={formik.touched.Precio && Boolean(formik.errors.Precio)}
+            helperText={formik.touched.Precio && formik.errors.Precio}
           />
         </DialogContent>
-        {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
           <Box m="auto">
-            {console.log("mensajeExitoAlert", mensajeExitoAlert)}
-            {console.log("mensajeErrorAlert", mensajeErrorAlert)}
             {mensajeErrorAlert && (
               <Alert severity="error">
                 <b>¡ERROR!</b> ─ {mensajeErrorAlert}
@@ -209,7 +249,6 @@ const UpdatePreciosModal = ({
               </Alert>
             )}
           </Box>
-          {/* FIC: Boton de Cerrar. */}
           <LoadingButton
             color="secondary"
             loadingPosition="start"
@@ -219,7 +258,6 @@ const UpdatePreciosModal = ({
           >
             <span>CERRAR</span>
           </LoadingButton>
-          {/* FIC: Boton de Guardar. */}
           <LoadingButton
             color="primary"
             loadingPosition="start"

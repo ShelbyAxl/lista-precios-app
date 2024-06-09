@@ -9,6 +9,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllRoles } from "../../services/remote/get/getAllRoles";
+import { DeleteOneRole } from "../../services/remote/delete/DeleteOneRole";
 import { useSelector, useDispatch } from "react-redux";
 import { SET_ID_ROLES } from "../../../redux/slices/rolesSlice";
 //FIC: Modals
@@ -27,23 +28,24 @@ const RolesTable = () => {
   const [UpdateInstituteShowModal, setUpdateInstituteShowModal] =
     useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const AllRolesData = await getAllRoles(instituto);
-        console.log(AllRolesData);
-        setRolesData(AllRolesData);
-        dispatch(SET_ID_ROLES(AllRolesData[0].Condicion));
-        setLoadingTable(false);
-      } catch (error) {
-        console.error(
-          "Error al obtener los roles en useEffect de RolesTable:",
-          error
-        );
-      }
+  async function fetchData() {
+    try {
+      const AllRolesData = await getAllRoles(instituto);
+      console.log(AllRolesData);
+      setRolesData(AllRolesData);
+      dispatch(SET_ID_ROLES(AllRolesData[0].Condicion));
+      setLoadingTable(false);
+    } catch (error) {
+      console.error(
+        "Error al obtener los roles en useEffect de RolesTable:",
+        error
+      );
     }
+  }
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [instituto, AddRoleShowModal, UpdateInstituteShowModal]);
 
   const rol = useSelector((state) => state.roles.rolesDataArr);
   console.log(rol);
@@ -59,6 +61,7 @@ const RolesTable = () => {
 
   const RolesColumns = useMemo(
     () => [
+      { accessorKey: "Condicion", header: "CONDICION", size: 150 },
       {
         accessorKey: "DesCondicion",
         header: "CONDICION DE DESCUENTO",
@@ -66,7 +69,6 @@ const RolesTable = () => {
       },
       { accessorKey: "FechaExpiraIni", header: "EXPIRACION INICIO", size: 150 },
       { accessorKey: "FechaExpiraFin", header: "EXPIRACION FINAL", size: 150 },
-      { accessorKey: "Condicion", header: "CONDICION", size: 150 },
     ],
     []
   );
@@ -99,15 +101,30 @@ const RolesTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton  onClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
-                DeleteOneRol(selectedRoleId);
-              }
-            }}>
+            <IconButton
+              onClick={async () => {
+                if (selectedRoleId) {
+                  if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                    try {
+                      const response = await DeleteOneRole([instituto, selectedRoleId]);
+                      console.log("Rol eliminado con éxito", response);
+                      // Actualizar la tabla después de eliminar
+                      await fetchData();
+                      alert("Rol eliminado con éxito");
+                    } catch (error) {
+                      console.error("Error al eliminar el rol:", error);
+                      alert("Error al eliminar el rol");
+                    }
+                  }
+                } else {
+                  alert("Por favor, selecciona un rol para eliminar.");
+                }
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Detalles">ñ
+          <Tooltip title="Detalles">
             <IconButton
               onClick={() => {
                 if (selectedRoleId !== null) {
@@ -142,6 +159,7 @@ const RolesTable = () => {
           onClose={() => setUpdateInstituteShowModal(false)}
           instituteId={instituto}
           RoleId={selectedRoleId}
+          updateRoles={fetchData}
         />
       </Dialog>
     </Box>

@@ -5,7 +5,6 @@ import { InstituteModel } from "../models/InstitutesModel";
 export const InstituteValues = (values) => {
   let Institute = InstituteModel();
   (Institute.IdInstitutoOK = values.IdInstitutoOK),
-    (Institute.Instituto = values.Instituto),
     (Institute.IdListaOK = values.IdListaOK),
     (Institute.IdListaBK = values.IdListaBK),
     (Institute.DesLista = values.DesLista),

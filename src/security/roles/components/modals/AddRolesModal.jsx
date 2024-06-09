@@ -9,12 +9,6 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -27,32 +21,33 @@ import { RolesValues } from "../../helpers/RolesValues";
 import { useSelector } from "react-redux";
 //FIC: Services
 import { AddOneRoles } from "../../services/remote/post/AddOneRoles";
-const AddRolesModal = ({
-  AddRolesShowModal,
-  setAddRolesShowModal,
-}) => {
+const AddRolesModal = ({ AddRolesShowModal, setAddRolesShowModal }) => {
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
   console.log("instituto:", instituto);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
 
-  useEffect(() => {
-  }, []);
+  useEffect(() => {}, []);
 
   //FIC: Definition Formik y Yup.
   const formik = useFormik({
     initialValues: {
+      Condicion: "",
       DesCondicion: "",
       FechaExpiraIni: "",
       FechaExpiraFin: "",
-      Condicion: "",
     },
     validationSchema: Yup.object({
-      DesCondicion: Yup.string().required("Campo requerido"),
-      FechaExpiraIni: Yup.string().required("Campo requerido"),
-      FechaExpiraFin: Yup.string().required("Campo requerido"),
       Condicion: Yup.string().required("Campo requerido"),
+      DesCondicion: Yup.string().required("Campo requerido"),
+      FechaExpiraIni: Yup.date().required("Campo requerido"),
+      FechaExpiraFin: Yup.date()
+        .required("Campo requerido")
+        .min(
+          Yup.ref("FechaExpiraIni"),
+          "La fecha de fin no puede ser anterior a la fecha de inicio"
+        ),
     }),
     onSubmit: async (values) => {
       //FIC: mostramos el Loading.
@@ -108,7 +103,7 @@ const AddRolesModal = ({
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Agregar Nuevo Role</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -118,14 +113,22 @@ const AddRolesModal = ({
         >
           {/* FIC: Campos de captura o selección */}
           <TextField
+            id="Condicion"
+            label="Condicion*"
+            value={formik.values.Condicion}
+            /* onChange={formik.handleChange} */
+            {...commonTextFieldProps}
+            error={formik.touched.Condicion && Boolean(formik.errors.Condicion)}
+            helperText={formik.touched.Condicion && formik.errors.Condicion}
+          />
+          <TextField
             id="DesCondicion"
             label="DesCondicion*"
             value={formik.values.DesCondicion}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.DesCondicion &&
-              Boolean(formik.errors.DesCondicion)
+              formik.touched.DesCondicion && Boolean(formik.errors.DesCondicion)
             }
             helperText={
               formik.touched.DesCondicion && formik.errors.DesCondicion
@@ -133,9 +136,15 @@ const AddRolesModal = ({
           />
           <TextField
             id="FechaExpiraIni"
-            label="FechaExpiraIni*"
+            label="Fecha Expira Ini*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraIni}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraIni", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraIni &&
@@ -147,9 +156,15 @@ const AddRolesModal = ({
           />
           <TextField
             id="FechaExpiraFin"
-            label="FechaExpiraFin*"
+            label="Fecha Expira Fin*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraFin}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraFin", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraFin &&
@@ -159,21 +174,6 @@ const AddRolesModal = ({
               formik.touched.FechaExpiraFin && formik.errors.FechaExpiraFin
             }
           />
-          <TextField
-            id="Condicion"
-            label="Condicion*"
-            value={formik.values.Condicion}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.Condicion &&
-              Boolean(formik.errors.Condicion)
-            }
-            helperText={
-              formik.touched.Condicion && formik.errors.Condicion
-            }
-          />
-          
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>

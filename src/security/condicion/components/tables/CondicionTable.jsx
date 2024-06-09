@@ -9,6 +9,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllCondicion } from "../../services/remote/get/getAllCondicion";
+import { DeleteOneCondicion } from "../../services/remote/delete/DeleteOneCondicion";
 import AddCondicionModal from "../modals/AddCondicionModal";
 import UpdateCondicionModal from "../modals/UpdateCondicionModal";
 import { useSelector } from "react-redux";
@@ -21,23 +22,25 @@ const CondicionTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddCondicionShowModal, setAddCondicionShowModal] = useState(false);
   const [selectedCondicionId, setSelectedCondicionId] = useState(null);
-  const [UpdateCondicionShowModal, setUpdateCondicionShowModal] = useState(false);
+  const [UpdateCondicionShowModal, setUpdateCondicionShowModal] =
+    useState(false);
+
+  async function fetchData() {
+    try {
+      const AllCondicionData = await getAllCondicion();
+      setCondicionData(AllCondicionData);
+      setLoadingTable(false);
+    } catch (error) {
+      console.error(
+        "Error al obtener los condiciones en useEffect de CondicionTable:",
+        error
+      );
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const AllCondicionData = await getAllCondicion();
-        setCondicionData(AllCondicionData);
-        setLoadingTable(false);
-      } catch (error) {
-        console.error(
-          "Error al obtener los condiciones en useEffect de CondicionTable:",
-          error
-        );
-      }
-    }
     fetchData();
-  }, []);
+  }, [instituto, roles, AddCondicionShowModal, UpdateCondicionShowModal]);
 
   const handleRowClick = (row) => {
     setSelectedCondicionId(row.original.IdTipoCondicionOK);
@@ -56,6 +59,11 @@ const CondicionTable = () => {
       {
         accessorKey: "IdTipoOperadorOK",
         header: "ID TIPO OPERADOR OK",
+        size: 150,
+      },
+      {
+        accessorKey: "Valor",
+        header: "VALOR",
         size: 150,
       },
       {
@@ -92,18 +100,39 @@ const CondicionTable = () => {
           <Tooltip title="Editar">
             <IconButton
               onClick={() => {
-                setUpdateCondicionShowModal(true)
+                setUpdateCondicionShowModal(true);
               }}
             >
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton  onClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
-                DeleteOneCondicion(selectedCondicionId);
-              }
-            }}>
+            <IconButton
+              onClick={async () => {
+                if (selectedCondicionId) {
+                  if (
+                    window.confirm("¿Estás seguro de que deseas eliminarlo?")
+                  ) {
+                    try {
+                      const response = await DeleteOneCondicion([
+                        instituto,
+                        roles,
+                        selectedCondicionId,
+                      ]);
+                      console.log("Condición eliminada con éxito", response);
+                      // Actualizar la tabla después de eliminar
+                      await fetchData();
+                      alert("Condición eliminada con éxito");
+                    } catch (error) {
+                      console.error("Error al eliminar la condición:", error);
+                      alert("Error al eliminar la condición");
+                    }
+                  }
+                } else {
+                  alert("Por favor, selecciona una condición para eliminar.");
+                }
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -136,13 +165,14 @@ const CondicionTable = () => {
         />
       </Dialog>
       <Dialog open={UpdateCondicionShowModal}>
-      <UpdateCondicionModal
+        <UpdateCondicionModal
           UpdateCondicionShowModal={UpdateCondicionShowModal}
           setUpdateCondicionShowModal={setUpdateCondicionShowModal}
           onClose={() => setUpdateCondicionShowModal(false)}
           instituteId={instituto}
           rolesId={roles}
           condicionId={selectedCondicionId}
+          updateCondicion={fetchData}
         />
       </Dialog>
     </Box>

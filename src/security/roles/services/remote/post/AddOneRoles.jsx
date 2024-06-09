@@ -1,10 +1,10 @@
 import axios from "axios";
 
 export function AddOneRoles(ids, roles) {
-  console.log(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}`);
+  console.log(`${import.meta.env.VITE_GET_ALL}/${ids}/roles`);
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}`, roles)
+      .post(`${import.meta.env.VITE_GET_ALL}/${ids}/roles`, roles)
       .then((response) => {
         console.log("<<RESPONSE>> AddOneRoles", roles);
         const data = response.data;

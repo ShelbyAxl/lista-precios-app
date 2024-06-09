@@ -9,18 +9,12 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import { PreciosValues } from "../../helpers/PrecioValues";
-import { AddOnePrecio } from "../../services/remote/post/AddOnePrecio";
 import { useSelector } from "react-redux";
 //FIC: Formik - Yup
 import { useFormik } from "formik";
@@ -29,18 +23,41 @@ import * as Yup from "yup";
 // import { PrecioValues } from "../../helpers/PrecioValues";
 //FIC: Services
 // import { AddOnePrecio } from "../../services/remote/post/AddOnePrecio";
-const AddPrecioModal = ({
-  AddPrecioShowModal,
-  setAddPrecioShowModal,
-}) => {
+import { AddOnePrecio } from "../../services/remote/post/AddOnePrecio";
+import { getPrecios } from "../../services/remote/get/getPrecios";
+import { getAllInstitutes } from "../../../institutes/services/remote/get/getAllInstitutes";
+
+const AddPrecioModal = ({ AddPrecioShowModal, setAddPrecioShowModal }) => {
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
   console.log(instituto);
 
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [listas, setListas] = useState([]);
 
   useEffect(() => {
+    async function fetchInstitutes() {
+      try {
+        const productos = await getPrecios();
+        setProductos(productos);
+      } catch (error) {
+        console.error("Error fetching precios:", error);
+      }
+    }
+
+    async function fetchListas() {
+      try {
+        const listas = await getAllInstitutes();
+        setListas(listas);
+      } catch (error) {
+        console.error("Error fetching listas:", error);
+      }
+    }
+
+    fetchInstitutes();
+    fetchListas();
   }, []);
 
   //FIC: Definition Formik y Yup.
@@ -115,7 +132,7 @@ const AddPrecioModal = ({
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Agregar Nuevo Precio</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -124,18 +141,34 @@ const AddPrecioModal = ({
           dividers
         >
           {/* FIC: Campos de captura o selección */}
-          <TextField
+          <Autocomplete
             id="IdProdServOK"
-            label="IdProdServOK*"
-            value={formik.values.IdProdServOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdProdServOK &&
-              Boolean(formik.errors.IdProdServOK)
-            }
-            helperText={
-              formik.touched.IdProdServOK && formik.errors.IdProdServOK
+            options={productos}
+            getOptionLabel={(option) => option.IdProdServOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdProdServOK",
+                newValue ? newValue.IdProdServOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdProdServOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdProdServOK &&
+                  Boolean(formik.errors.IdProdServOK)
+                }
+                helperText={
+                  formik.touched.IdProdServOK && formik.errors.IdProdServOK
+                }
+              />
+            )}
+            value={
+              productos.find(
+                (option) => option.IdProdServOK === formik.values.IdProdServOK
+              ) || null
             }
           />
           <TextField
@@ -149,21 +182,38 @@ const AddPrecioModal = ({
               Boolean(formik.errors.PresentacionDelProducto)
             }
             helperText={
-              formik.touched.PresentacionDelProducto && formik.errors.PresentacionDelProducto
+              formik.touched.PresentacionDelProducto &&
+              formik.errors.PresentacionDelProducto
             }
           />
-          <TextField
+          <Autocomplete
             id="IdTipoFormulaOK"
-            label="IdTipoFormulaOK*"
-            value={formik.values.IdTipoFormulaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoFormulaOK &&
-              Boolean(formik.errors.IdTipoFormulaOK)
-            }
-            helperText={
-              formik.touched.IdTipoFormulaOK && formik.errors.IdTipoFormulaOK
+            options={listas}
+            getOptionLabel={(option) => option.IdTipoFormulaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoFormulaOK",
+                newValue ? newValue.IdTipoFormulaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoFormulaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoFormulaOK &&
+                  Boolean(formik.errors.IdTipoFormulaOK)
+                }
+                helperText={
+                  formik.touched.IdTipoFormulaOK && formik.errors.IdTipoFormulaOK
+                }
+              />
+            )}
+            value={
+              listas.find(
+                (option) => option.IdTipoFormulaOK === formik.values.IdTipoFormulaOK
+              ) || null
             }
           />
           <TextField
@@ -172,13 +222,8 @@ const AddPrecioModal = ({
             value={formik.values.Formula}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.Formula &&
-              Boolean(formik.errors.Formula)
-            }
-            helperText={
-              formik.touched.Formula && formik.errors.Formula
-            }
+            error={formik.touched.Formula && Boolean(formik.errors.Formula)}
+            helperText={formik.touched.Formula && formik.errors.Formula}
           />
           <TextField
             id="Precio"
@@ -186,13 +231,8 @@ const AddPrecioModal = ({
             value={formik.values.Precio}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.Precio &&
-              Boolean(formik.errors.Precio)
-            }
-            helperText={
-              formik.touched.Precio && formik.errors.Precio
-            }
+            error={formik.touched.Precio && Boolean(formik.errors.Precio)}
+            helperText={formik.touched.Precio && formik.errors.Precio}
           />
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}

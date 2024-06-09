@@ -9,10 +9,7 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  Select,
-  MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,16 +22,43 @@ import { InstituteValues } from "../../helpers/InstituteValues";
 //FIC: Services
 import { UpdateOneInstitute } from "../../services/remote/put/UpdateOneInstitute";
 import { getOneInstitute } from "../../services/remote/get/getOneInstitute";
+import { getInstitutes } from "../../services/remote/get/getInstitutes";
+import { getAllInstitutes } from "../../services/remote/get/getAllInstitutes";
+
 const UpdateInstituteModal = ({
   UpdateInstituteShowModal,
   setUpdateInstituteShowModal,
   instituteId,
   updateInstitutes,
 }) => {
-  console.log(instituteId)
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
+  const [institutes, setInstitutes] = useState([]);
+  const [listas, setListas] = useState([]);
+
+  useEffect(() => {
+    async function fetchInstitutes() {
+      try {
+        const institutes = await getInstitutes();
+        setInstitutes(institutes);
+      } catch (error) {
+        console.error("Error fetching institutes:", error);
+      }
+    }
+
+    async function fetchListas() {
+      try {
+        const listas = await getAllInstitutes();
+        setListas(listas);
+      } catch (error) {
+        console.error("Error fetching listas:", error);
+      }
+    }
+
+    fetchInstitutes();
+    fetchListas();
+  }, []);
 
   useEffect(() => {
     if (instituteId) {
@@ -43,18 +67,19 @@ const UpdateInstituteModal = ({
   }, [instituteId]);
 
   async function getInstituteData() {
-    console.log("getInstituteData is called");
     try {
       const instituteData = await getOneInstitute(instituteId);
-      console.log("Institute Data:", instituteData);
       formik.setValues({
         IdInstitutoOK: instituteData.IdInstitutoOK,
-        Instituto: instituteData.Instituto,
         IdListaOK: instituteData.IdListaOK,
         IdListaBK: instituteData.IdListaBK,
         DesLista: instituteData.DesLista,
-        FechaExpiraIni: instituteData.FechaExpiraIni,
-        FechaExpiraFin: instituteData.FechaExpiraFin,
+        FechaExpiraIni: new Date(instituteData.FechaExpiraIni)
+          .toISOString()
+          .split("T")[0],
+        FechaExpiraFin: new Date(instituteData.FechaExpiraFin)
+          .toISOString()
+          .split("T")[0],
         IdTipoListaOK: instituteData.IdTipoListaOK,
         IdTipoGeneraListaOK: instituteData.IdTipoGeneraListaOK,
         IdListaBaseOK: instituteData.IdListaBaseOK,
@@ -64,11 +89,10 @@ const UpdateInstituteModal = ({
       console.error("Error al obtener los datos del instituto:", e);
     }
   }
-  //FIC: Definition Formik y Yup.
+
   const formik = useFormik({
     initialValues: {
       IdInstitutoOK: "",
-      Instituto: "",
       IdListaOK: "",
       IdListaBK: "",
       DesLista: "",
@@ -81,40 +105,45 @@ const UpdateInstituteModal = ({
     },
     validationSchema: Yup.object({
       IdInstitutoOK: Yup.string().required("Campo requerido"),
-      Instituto: Yup.string().required("Campo requerido"),
       IdListaOK: Yup.string().required("Campo requerido"),
       IdListaBK: Yup.string().required("Campo requerido"),
       DesLista: Yup.string().required("Campo requerido"),
-      FechaExpiraIni: Yup.string().required("Campo requerido"),
-      FechaExpiraFin: Yup.string().required("Campo requerido"),
+      FechaExpiraIni: Yup.date().required("Campo requerido"),
+      FechaExpiraFin: Yup.date()
+        .required("Campo requerido")
+        .min(
+          Yup.ref("FechaExpiraIni"),
+          "La fecha de fin no puede ser anterior a la fecha de inicio"
+        ),
       IdTipoListaOK: Yup.string().required("Campo requerido"),
       IdTipoGeneraListaOK: Yup.string().required("Campo requerido"),
       IdListaBaseOK: Yup.string().required("Campo requerido"),
       IdTipoFormulaOK: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
-      console.log("FIC: entro al onSubmit");
       setLoading(true);
-      console.log(
-        "FIC: entro al onSubmit despues de hacer click en boton Guardar"
-      );
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
         const Institute = InstituteValues(values);
-        console.log("<<Institute>>", Institute);
         await UpdateOneInstitute(instituteId, Institute);
         setMensajeExitoAlert(
           "Instituto fue actualizado y guardado Correctamente"
         );
-        updateInstitutes();
+        try {
+          await updateInstitutes();
+        } catch (e) {
+          console.error("Error updating institutes:", e);
+        }
       } catch (e) {
+        console.error("Error updating one institute:", e);
         setMensajeExitoAlert(null);
         setMensajeErrorAlert("No se pudo actualizar el Instituto");
       }
       setLoading(false);
     },
   });
+
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -122,6 +151,7 @@ const UpdateInstituteModal = ({
     margin: "dense",
     disabled: !!mensajeExitoAlert,
   };
+
   return (
     <Dialog
       open={UpdateInstituteShowModal}
@@ -129,93 +159,120 @@ const UpdateInstituteModal = ({
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
-        {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
             <strong>Actualizar Instituto</strong>
           </Typography>
         </DialogTitle>
-        {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
         <DialogContent
           sx={{ display: "flex", flexDirection: "column" }}
           dividers
         >
-          {/* FIC: Campos de captura o selección */}
-          <TextField
+          <Autocomplete
             id="IdInstitutoOK"
-            label="IdInstitutoOK*"
-            value={formik.values.IdInstitutoOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdInstitutoOK &&
-              Boolean(formik.errors.IdInstitutoOK)
+            options={institutes}
+            getOptionLabel={(option) => option.IdInstitutoOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdInstitutoOK",
+                newValue ? newValue.IdInstitutoOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdInstitutoOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdInstitutoOK &&
+                  Boolean(formik.errors.IdInstitutoOK)
+                }
+                helperText={
+                  formik.touched.IdInstitutoOK && formik.errors.IdInstitutoOK
+                }
+                disabled
+              />
+            )}
+            value={
+              institutes.find(
+                (option) => option.IdInstitutoOK === formik.values.IdInstitutoOK
+              ) || null
             }
-            helperText={
-              formik.touched.IdInstitutoOK && formik.errors.IdInstitutoOK
-            }
+            disabled
           />
-          <TextField
-            id="Instituto"
-            label="Instituto*"
-            value={formik.values.Instituto}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.Instituto &&
-              Boolean(formik.errors.Instituto)
-            }
-            helperText={
-              formik.touched.Instituto && formik.errors.Instituto
-            }
-          />
-          <TextField
+          <Autocomplete
             id="IdListaOK"
-            label="IdListaOK*"
-            value={formik.values.IdListaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdListaOK &&
-              Boolean(formik.errors.IdListaOK)
-            }
-            helperText={
-              formik.touched.IdListaOK && formik.errors.IdListaOK
+            options={listas}
+            getOptionLabel={(option) => option.IdListaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdListaOK",
+                newValue ? newValue.IdListaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdListaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdListaOK && Boolean(formik.errors.IdListaOK)
+                }
+                helperText={formik.touched.IdListaOK && formik.errors.IdListaOK}
+              />
+            )}
+            value={
+              listas.find(
+                (option) => option.IdListaOK === formik.values.IdListaOK
+              ) || null
             }
           />
-          <TextField
+          <Autocomplete
             id="IdListaBK"
-            label="IdListaBK*"
-            value={formik.values.IdListaBK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdListaBK &&
-              Boolean(formik.errors.IdListaBK)
-            }
-            helperText={
-              formik.touched.IdListaBK && formik.errors.IdListaBK
+            options={listas}
+            getOptionLabel={(option) => option.IdListaBK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdListaBK",
+                newValue ? newValue.IdListaBK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdListaBK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdListaBK && Boolean(formik.errors.IdListaBK)
+                }
+                helperText={formik.touched.IdListaBK && formik.errors.IdListaBK}
+              />
+            )}
+            value={
+              listas.find(
+                (option) => option.IdListaBK === formik.values.IdListaBK
+              ) || null
             }
           />
           <TextField
             id="DesLista"
             label="DesLista*"
             value={formik.values.DesLista}
-            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.DesLista &&
-              Boolean(formik.errors.DesLista)
-            }
-            helperText={
-              formik.touched.DesLista && formik.errors.DesLista
-            }
+            error={formik.touched.DesLista && Boolean(formik.errors.DesLista)}
+            helperText={formik.touched.DesLista && formik.errors.DesLista}
           />
           <TextField
             id="FechaExpiraIni"
-            label="FechaExpiraIni*"
+            label="Fecha Expira Ini*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraIni}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraIni", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraIni &&
@@ -227,9 +284,15 @@ const UpdateInstituteModal = ({
           />
           <TextField
             id="FechaExpiraFin"
-            label="FechaExpiraFin*"
+            label="Fecha Expira Fin*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraFin}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraFin", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraFin &&
@@ -239,68 +302,134 @@ const UpdateInstituteModal = ({
               formik.touched.FechaExpiraFin && formik.errors.FechaExpiraFin
             }
           />
-          <TextField
+          <Autocomplete
             id="IdTipoListaOK"
-            label="IdTipoListaOK*"
-            value={formik.values.IdTipoListaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoListaOK &&
-              Boolean(formik.errors.IdTipoListaOK)
-            }
-            helperText={
-              formik.touched.IdTipoListaOK && formik.errors.IdTipoListaOK
+            options={listas}
+            getOptionLabel={(option) => option.IdTipoListaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoListaOK",
+                newValue ? newValue.IdTipoListaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoListaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoListaOK &&
+                  Boolean(formik.errors.IdTipoListaOK)
+                }
+                helperText={
+                  formik.touched.IdTipoListaOK && formik.errors.IdTipoListaOK
+                }
+              />
+            )}
+            value={
+              listas.find(
+                (option) => option.IdTipoListaOK === formik.values.IdTipoListaOK
+              ) || null
             }
           />
-          <TextField
+          <Autocomplete
             id="IdTipoGeneraListaOK"
-            label="IdTipoGeneraListaOK*"
-            value={formik.values.IdTipoGeneraListaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoGeneraListaOK &&
-              Boolean(formik.errors.IdTipoGeneraListaOK)
-            }
-            helperText={
-              formik.touched.IdTipoGeneraListaOK && formik.errors.IdTipoGeneraListaOK
+            options={listas}
+            getOptionLabel={(option) => option.IdTipoGeneraListaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoGeneraListaOK",
+                newValue ? newValue.IdTipoGeneraListaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoGeneraListaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoGeneraListaOK &&
+                  Boolean(formik.errors.IdTipoGeneraListaOK)
+                }
+                helperText={
+                  formik.touched.IdTipoGeneraListaOK &&
+                  formik.errors.IdTipoGeneraListaOK
+                }
+              />
+            )}
+            value={
+              listas.find(
+                (option) =>
+                  option.IdTipoGeneraListaOK ===
+                  formik.values.IdTipoGeneraListaOK
+              ) || null
             }
           />
-          <TextField
+          <Autocomplete
             id="IdListaBaseOK"
-            label="IdListaBaseOK*"
-            value={formik.values.IdListaBaseOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdListaBaseOK &&
-              Boolean(formik.errors.IdListaBaseOK)
-            }
-            helperText={
-              formik.touched.IdListaBaseOK && formik.errors.IdListaBaseOK
+            options={listas}
+            getOptionLabel={(option) => option.IdListaBaseOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdListaBaseOK",
+                newValue ? newValue.IdListaBaseOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdListaBaseOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdListaBaseOK &&
+                  Boolean(formik.errors.IdListaBaseOK)
+                }
+                helperText={
+                  formik.touched.IdListaBaseOK && formik.errors.IdListaBaseOK
+                }
+              />
+            )}
+            value={
+              listas.find(
+                (option) => option.IdListaBaseOK === formik.values.IdListaBaseOK
+              ) || null
             }
           />
-          <TextField
+          <Autocomplete
             id="IdTipoFormulaOK"
-            label="IdTipoFormulaOK*"
-            value={formik.values.IdTipoFormulaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoFormulaOK &&
-              Boolean(formik.errors.IdTipoFormulaOK)
-            }
-            helperText={
-              formik.touched.IdTipoFormulaOK && formik.errors.IdTipoFormulaOK
+            options={listas}
+            getOptionLabel={(option) => option.IdTipoFormulaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoFormulaOK",
+                newValue ? newValue.IdTipoFormulaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoFormulaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoFormulaOK &&
+                  Boolean(formik.errors.IdTipoFormulaOK)
+                }
+                helperText={
+                  formik.touched.IdTipoFormulaOK &&
+                  formik.errors.IdTipoFormulaOK
+                }
+              />
+            )}
+            value={
+              listas.find(
+                (option) =>
+                  option.IdTipoFormulaOK === formik.values.IdTipoFormulaOK
+              ) || null
             }
           />
         </DialogContent>
-        {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
           <Box m="auto">
-            {console.log("mensajeExitoAlert", mensajeExitoAlert)}
-            {console.log("mensajeErrorAlert", mensajeErrorAlert)}
             {mensajeErrorAlert && (
               <Alert severity="error">
                 <b>¡ERROR!</b> ─ {mensajeErrorAlert}
@@ -312,7 +441,6 @@ const UpdateInstituteModal = ({
               </Alert>
             )}
           </Box>
-          {/* FIC: Boton de Cerrar. */}
           <LoadingButton
             color="secondary"
             loadingPosition="start"
@@ -322,7 +450,6 @@ const UpdateInstituteModal = ({
           >
             <span>CERRAR</span>
           </LoadingButton>
-          {/* FIC: Boton de Guardar. */}
           <LoadingButton
             color="primary"
             loadingPosition="start"

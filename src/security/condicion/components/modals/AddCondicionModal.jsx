@@ -9,12 +9,7 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,8 +20,8 @@ import * as Yup from "yup";
 //FIC: Helpers
 import { CondicionValues } from "../../helpers/CondicionValues";
 import { addOneCondicion } from "../../services/remote/post/AddOneCondicion";
+import { getCondiciones } from "../../services/remote/get/getCondicion";
 import { useSelector } from "react-redux";
-import { CollectionsOutlined } from "@mui/icons-material";
 //FIC: Services
 // import { AddOneCondicion } from "../../../Condicions/services/remote/post/AddOneCondicion";
 const AddCondicionModal = ({
@@ -40,8 +35,19 @@ const AddCondicionModal = ({
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
+  const [condicion, setCondicion] = useState([]);
 
   useEffect(() => {
+    async function fetchCondicion() {
+      try {
+        const condicion = await getCondiciones();
+        setCondicion(condicion);
+      } catch (error) {
+        console.error("Error fetching condicion:", error);
+      }
+    }
+
+    fetchCondicion();
   }, []);
 
   //FIC: Definition Formik y Yup.
@@ -111,7 +117,7 @@ const AddCondicionModal = ({
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Agregar Nueva Condicion</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -120,31 +126,68 @@ const AddCondicionModal = ({
           dividers
         >
           {/* FIC: Campos de captura o selección */}
-          <TextField
+          <Autocomplete
             id="IdTipoCondicionOK"
-            label="IdTipoCondicionOK*"
-            value={formik.values.IdTipoCondicionOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoCondicionOK &&
-              Boolean(formik.errors.IdTipoCondicionOK)
-            }
-            helperText={
-              formik.touched.IdTipoCondicionOK && formik.errors.IdTipoCondicionOK
+            options={condicion}
+            getOptionLabel={(option) => option.IdTipoCondicionOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoCondicionOK",
+                newValue ? newValue.IdTipoCondicionOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoCondicionOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoCondicionOK &&
+                  Boolean(formik.errors.IdTipoCondicionOK)
+                }
+                helperText={
+                  formik.touched.IdTipoCondicionOK &&
+                  formik.errors.IdTipoCondicionOK
+                }
+              />
+            )}
+            value={
+              condicion.find(
+                (option) =>
+                  option.IdTipoCondicionOK === formik.values.IdTipoCondicionOK
+              ) || null
             }
           />
-          <TextField
+          <Autocomplete
             id="IdTipoOperadorOK"
-            label="IdTipoOperadorOK*"
-            value={formik.values.IdTipoOperadorOK}
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoOperadorOK &&
-              Boolean(formik.errors.IdTipoOperadorOK)
-            }
-            helperText={
-              formik.touched.IdTipoOperadorOK && formik.errors.IdTipoOperadorOK
+            options={condicion}
+            getOptionLabel={(option) => option.IdTipoOperadorOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoOperadorOK",
+                newValue ? newValue.IdTipoOperadorOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoOperadorOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoOperadorOK &&
+                  Boolean(formik.errors.IdTipoOperadorOK)
+                }
+                helperText={
+                  formik.touched.IdTipoOperadorOK &&
+                  formik.errors.IdTipoOperadorOK
+                }
+              />
+            )}
+            value={
+              condicion.find(
+                (option) =>
+                  option.IdTipoOperadorOK === formik.values.IdTipoOperadorOK
+              ) || null
             }
           />
           <TextField
@@ -153,26 +196,16 @@ const AddCondicionModal = ({
             value={formik.values.Valor}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.Valor &&
-              Boolean(formik.errors.Valor)
-            }
-            helperText={
-              formik.touched.Valor && formik.errors.Valor
-            }
+            error={formik.touched.Valor && Boolean(formik.errors.Valor)}
+            helperText={formik.touched.Valor && formik.errors.Valor}
           />
           <TextField
             id="Secuecia"
             label="Secuecia*"
             value={formik.values.Secuecia}
             {...commonTextFieldProps}
-            error={
-              formik.touched.Secuecia &&
-              Boolean(formik.errors.Secuecia)
-            }
-            helperText={
-              formik.touched.Secuecia && formik.errors.Secuecia
-            }
+            error={formik.touched.Secuecia && Boolean(formik.errors.Secuecia)}
+            helperText={formik.touched.Secuecia && formik.errors.Secuecia}
           />
         </DialogContent>
         {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}

@@ -11,11 +11,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllNegocios } from "../../services/remote/get/getAllNegocios";
 import AddNegocioModal from "../modals/AddNegocioModal";
 import UpdateNegocioModal from "../modals/UpdateNegocioModal";
-import DeleteOneNegocios from "../../services/remote/delete/DeleteOneNegocios"
+import { DeleteOneNegocios } from "../../services/remote/delete/DeleteOneNegocios";
 import { useSelector } from "react-redux";
 
 const NegociosTable = () => {
-
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
 
   const [loadingTable, setLoadingTable] = useState(true);
@@ -25,7 +24,7 @@ const NegociosTable = () => {
   const [selectedNegocioId, setSelectedNegocioId] = useState(null);
   const [UpdateNegocioShowModal, setUpdateNegocioShowModal] = useState(false);
 
-  const ids = [instituto, selectedNegocioId]
+  const ids = [instituto, selectedNegocioId];
 
   useEffect(() => {
     async function fetchData() {
@@ -84,18 +83,18 @@ const NegociosTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton
-              onClick={() => setUpdateNegocioShowModal(true)}
-            >
+            <IconButton onClick={() => setUpdateNegocioShowModal(true)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton onClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
-                DeleteOneNegocios(ids);
-              }
-            }}>
+            <IconButton
+              onClick={() => {
+                if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                  DeleteOneNegocios(ids);
+                }
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>

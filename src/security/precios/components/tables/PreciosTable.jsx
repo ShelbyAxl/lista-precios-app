@@ -22,27 +22,28 @@ const PreciosTable = () => {
   const [AddPrecioShowModal, setAddPrecioShowModal] = useState(false);
   const [selectedPrecioId, setSelectedPrecioId] = useState(null);
   const [UpdatePrecioShowModal, setUpdatePrecioShowModal] = useState(false);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const AllPreciosData = await getAllPrecios(id);
-        setPreciosData(AllPreciosData);
-        setLoadingTable(false);
 
-        // Set the first row as selected
-        if (AllPreciosData.length > 0) {
-          setRowSelection({ [AllPreciosData[0].IdProdServOK]: true });
+  async function fetchData() {
+    try {
+      const AllPreciosData = await getAllPrecios(id);
+      setPreciosData(AllPreciosData);
+      setLoadingTable(false);
 
-        }
-      } catch (error) {
-        console.error(
-          "Error al obtener los precios en useEffect de PreciosTable:",
-          error
-        );
+      // Set the first row as selected
+      if (AllPreciosData.length > 0) {
+        setRowSelection({ [AllPreciosData[0].IdProdServOK]: true });
       }
+    } catch (error) {
+      console.error(
+        "Error al obtener los precios en useEffect de PreciosTable:",
+        error
+      );
     }
+  }
+
+  useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [id, AddPrecioShowModal, UpdatePrecioShowModal]);
 
   const handleRowClick = (row) => {
     setSelectedPrecioId(row.original.IdProdServOK);
@@ -51,7 +52,6 @@ const PreciosTable = () => {
       [row.id]: !prev[row.id],
     }));
   };
-
   const handleDelete = async () => {
     if (selectedPrecioId) {
       if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
@@ -59,28 +59,24 @@ const PreciosTable = () => {
           const response = await DeleteOnePrecio([id, selectedPrecioId]);
           console.log("Precio eliminado con éxito", response);
           // Actualizar la tabla después de eliminar
-          const updatedPreciosData = PreciosData.filter(precio => precio.IdProdServOK !== selectedPrecioId);
-          setPreciosData(updatedPreciosData);
-          setRowSelection({});
-          setSelectedPrecioId(null);
+          fetchData();
+          alert("Precio eliminado con éxito");
         } catch (error) {
           console.error("Error al eliminar el precio:", error);
+          alert("Error al eliminar el precio");
         }
       }
     } else {
       alert("Por favor, selecciona un precio para eliminar.");
     }
   };
-  
-
   const PreciosColumns = useMemo(
     () => [
       { accessorKey: "IdProdServOK", header: "ID PROD SERV OK", size: 150 },
-      { accessorKey: "IdPresentaBK", header: "ID PRESENTA OK", size: 200 },
       {
         accessorKey: "PresentacionDelProducto",
         header: "DESCRIPCION",
-        size: 600,
+        size: 250,
       },
       {
         accessorKey: "IdTipoFormulaOK",
@@ -102,7 +98,9 @@ const PreciosTable = () => {
       selected: !!rowSelection[row.IdProdServOK],
       sx: {
         cursor: "pointer",
-        backgroundColor: rowSelection[row.IdProdServOK] ? "lightgreen" : "white",
+        backgroundColor: rowSelection[row.IdProdServOK]
+          ? "lightgreen"
+          : "white",
       },
     }),
     onRowSelectionChange: setRowSelection,
@@ -152,8 +150,9 @@ const PreciosTable = () => {
           onClose={() => setUpdatePrecioShowModal(false)}
           PrecioId={selectedPrecioId}
           instituteId={id}
+          updatePrecios={fetchData}
         />
-        </Dialog>
+      </Dialog>
     </Box>
   );
 };

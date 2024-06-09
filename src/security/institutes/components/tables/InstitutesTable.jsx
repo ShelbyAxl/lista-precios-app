@@ -3,7 +3,7 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import { Box, Stack, Tooltip, IconButton, Dialog } from "@mui/material";
+import { Box, Stack, Tooltip, IconButton, Dialog, Snackbar } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { SET_ID_INSTITUTES } from "../../../redux/slices/institutesSlice";
 import AddInstituteModal from "../modals/AddInstituteModal";
 import UpdateInstituteModal from "../modals/UpdateInstituteModal";
-import {DeleteOneInstitute} from "../../services/remote/delete/DeleteOneInstitute";
+import { DeleteOneInstitute } from "../../services/remote/delete/DeleteOneInstitute";
 
 const InstitutesTable = () => {
   const [loadingTable, setLoadingTable] = useState(true);
@@ -21,36 +21,37 @@ const InstitutesTable = () => {
   const [selectedInstituteId, setSelectedInstituteId] = useState(null);
   const [rowSelection, setRowSelection] = useState({});
   const [addInstituteShowModal, setAddInstituteShowModal] = useState(false);
-  const [updateInstitutes, setUpdateInstitutes] = useState(false);
+  const [updateInstitutesTrigger, setUpdateInstitutesTrigger] = useState(false);
   const [DetailsInstituteShowModal, setDetailsInstituteShowModal] =
     useState(false);
   const [UpdateInstituteShowModal, setUpdateInstituteShowModal] =
     useState(false);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const AllInstitutesData = await getAllInstitutes();
-        setInstitutesData(AllInstitutesData);
-        setLoadingTable(false);
+  const updateInstitutes = async () => {
+    try {
+      const AllInstitutesData = await getAllInstitutes();
+      setInstitutesData(AllInstitutesData);
+      setLoadingTable(false);
 
-        // Set initial selection
-        if (AllInstitutesData.length > 0) {
-          const firstInstituteId = AllInstitutesData[0]._id;
-          setSelectedInstituteId(firstInstituteId);
-          setRowSelection({ [firstInstituteId]: true });
-          dispatch(SET_ID_INSTITUTES(firstInstituteId));
-        }
-      } catch (error) {
-        console.error(
-          "Error al obtener los institutos en useEffect de InstitutesTable:",
-          error
-        );
+      // Set initial selection
+      if (AllInstitutesData.length > 0) {
+        const firstInstituteId = AllInstitutesData[0]._id;
+        setSelectedInstituteId(firstInstituteId);
+        setRowSelection({ [firstInstituteId]: true });
+        dispatch(SET_ID_INSTITUTES(firstInstituteId));
       }
+    } catch (error) {
+      console.error(
+        "Error al obtener los institutos en updateInstitutes de InstitutesTable:",
+        error
+      );
     }
-    fetchData();
-  }, [addInstituteShowModal]);
+  };
+
+  useEffect(() => {
+    updateInstitutes();
+  }, [addInstituteShowModal, updateInstitutesTrigger]);
 
   const handleRowClick = (row) => {
     setSelectedInstituteId(row.original._id);
@@ -61,7 +62,6 @@ const InstitutesTable = () => {
   const InstitutesColumns = useMemo(
     () => [
       { accessorKey: "IdInstitutoOK", header: "ID INSTITUTO OK", size: 150 },
-      { accessorKey: "Instituto", header: "INSTITUTO", size: 150 },
       { accessorKey: "IdListaOK", header: "ID LISTA OK", size: 150 },
       { accessorKey: "IdListaBK", header: "ID LISTA BK", size: 150 },
       { accessorKey: "DesLista", header: "DESCRIPCION LISTA", size: 150 },
@@ -107,16 +107,34 @@ const InstitutesTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton>
+            <IconButton
+              onClick={() => {
+                if (selectedInstituteId !== null) {
+                  setUpdateInstituteShowModal(true);
+                } else {
+                  alert("Por favor, selecciona una fila para editar.");
+                }
+              }}
+            >
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton onClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
-                DeleteOneInstitute(selectedInstituteId);
-              }
-            }}>
+            <IconButton
+              onClick={() => {
+                if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
+                  DeleteOneInstitute(selectedInstituteId)
+                    .then(() => {
+                      updateInstitutes();
+                      alert("Instituto eliminado con éxito");
+                    })
+                    .catch((error) => {
+                      console.error("Error al eliminar el instituto:", error);
+                      alert("Error al eliminar el instituto");
+                    });
+                }
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -137,6 +155,7 @@ const InstitutesTable = () => {
       </Stack>
     ),
   });
+
   return (
     <Box>
       <MaterialReactTable table={table} />
@@ -155,9 +174,9 @@ const InstitutesTable = () => {
           instituteId={selectedInstituteId}
           updateInstitutes={updateInstitutes}
         />
-        </Dialog>
+      </Dialog>
     </Box>
   );
 };
 
-export default InstitutesTable; 
+export default InstitutesTable;

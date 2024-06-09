@@ -9,10 +9,6 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -22,75 +18,82 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 //FIC: Helpers
 import { RolesValues } from "../../helpers/RolesValues";
+import { useSelector } from "react-redux";
 //FIC: Services
 import { getOneRol } from "../../services/remote/get/getOneRol";
 import { putRol } from "../../services/remote/put/UpdateOneRol";
+
 const UpdateRoleModal = ({
   UpdateRoleShowModal,
   setUpdateRoleShowModal,
   instituteId,
   RoleId,
+  updateRoles,
 }) => {
   const ids = [instituteId, RoleId];
-  console.log("<<ids>>", ids);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (RoleId) {
       getRoleData();
+    }
   }, [RoleId]);
+
   async function getRoleData() {
-    console.log("getRoleData is called");
     try {
-      const RoleData = await getOneRol(ids);
-      console.log("Role Data:", RoleData);
+      const roleData = await getOneRol(ids);
       formik.setValues({
-        DesCondicion: RoleData.DesCondicion,
-        FechaExpiraIni: RoleData.FechaExpiraIni,
-        FechaExpiraFin: RoleData.FechaExpiraFin,
-        Condicion: RoleData.Condicion,
+        Condicion: roleData.Condicion,
+        DesCondicion: roleData.DesCondicion,
+        FechaExpiraIni: new Date(roleData.FechaExpiraIni)
+          .toISOString()
+          .split("T")[0],
+        FechaExpiraFin: new Date(roleData.FechaExpiraFin)
+          .toISOString()
+          .split("T")[0],
       });
     } catch (e) {
-      console.error("Error al obtener los datos del instituto:", e);
+      console.error("Error al obtener los datos del rol:", e);
     }
   }
-  //FIC: Definition Formik y Yup.
+
   const formik = useFormik({
     initialValues: {
+      Condicion: "",
       DesCondicion: "",
       FechaExpiraIni: "",
       FechaExpiraFin: "",
-      Condicion: "",
     },
     validationSchema: Yup.object({
-      DesCondicion: Yup.string().required("Campo requerido"),
-      FechaExpiraIni: Yup.string().required("Campo requerido"),
-      FechaExpiraFin: Yup.string().required("Campo requerido"),
       Condicion: Yup.string().required("Campo requerido"),
+      DesCondicion: Yup.string().required("Campo requerido"),
+      FechaExpiraIni: Yup.date().required("Campo requerido"),
+      FechaExpiraFin: Yup.date()
+        .required("Campo requerido")
+        .min(
+          Yup.ref("FechaExpiraIni"),
+          "La fecha de fin no puede ser anterior a la fecha de inicio"
+        ),
     }),
     onSubmit: async (values) => {
-      console.log("FIC: entro al onSubmit");
       setLoading(true);
-      console.log(
-        "FIC: entro al onSubmit despues de hacer click en boton Guardar"
-      );
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
         const Role = RolesValues(values);
-        console.log("<<Role>>", Role);
         await putRol(ids, Role);
-        setMensajeExitoAlert(
-          "Instituto fue actualizado y guardado Correctamente"
-        );
+        setMensajeExitoAlert("Rol fue actualizado y guardado correctamente");
+        updateRoles();
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo actualizar el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar el Rol");
       }
       setLoading(false);
     },
   });
+
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -98,6 +101,7 @@ const UpdateRoleModal = ({
     margin: "dense",
     disabled: !!mensajeExitoAlert,
   };
+
   return (
     <Dialog
       open={UpdateRoleShowModal}
@@ -105,27 +109,30 @@ const UpdateRoleModal = ({
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
-        {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Actualizar Instituto</strong>
+            <strong>Actualizar Rol</strong>
           </Typography>
         </DialogTitle>
-        {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
         <DialogContent
           sx={{ display: "flex", flexDirection: "column" }}
           dividers
         >
-          {/* FIC: Campos de captura o selección */}
+          <TextField
+            id="Condicion"
+            label="Condicion*"
+            value={formik.values.Condicion}
+            {...commonTextFieldProps}
+            error={formik.touched.Condicion && Boolean(formik.errors.Condicion)}
+            helperText={formik.touched.Condicion && formik.errors.Condicion}
+          />
           <TextField
             id="DesCondicion"
             label="DesCondicion*"
             value={formik.values.DesCondicion}
-            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={
-              formik.touched.DesCondicion &&
-              Boolean(formik.errors.DesCondicion)
+              formik.touched.DesCondicion && Boolean(formik.errors.DesCondicion)
             }
             helperText={
               formik.touched.DesCondicion && formik.errors.DesCondicion
@@ -133,9 +140,15 @@ const UpdateRoleModal = ({
           />
           <TextField
             id="FechaExpiraIni"
-            label="FechaExpiraIni*"
+            label="Fecha Expira Ini*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraIni}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraIni", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraIni &&
@@ -147,9 +160,15 @@ const UpdateRoleModal = ({
           />
           <TextField
             id="FechaExpiraFin"
-            label="FechaExpiraFin*"
+            label="Fecha Expira Fin*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraFin}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraFin", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraFin &&
@@ -159,26 +178,9 @@ const UpdateRoleModal = ({
               formik.touched.FechaExpiraFin && formik.errors.FechaExpiraFin
             }
           />
-          <TextField
-            id="Condicion"
-            label="Condicion*"
-            value={formik.values.Condicion}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.Condicion &&
-              Boolean(formik.errors.Condicion)
-            }
-            helperText={
-              formik.touched.Condicion && formik.errors.Condicion
-            }
-          />
         </DialogContent>
-        {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
           <Box m="auto">
-            {console.log("mensajeExitoAlert", mensajeExitoAlert)}
-            {console.log("mensajeErrorAlert", mensajeErrorAlert)}
             {mensajeErrorAlert && (
               <Alert severity="error">
                 <b>¡ERROR!</b> ─ {mensajeErrorAlert}
@@ -190,7 +192,6 @@ const UpdateRoleModal = ({
               </Alert>
             )}
           </Box>
-          {/* FIC: Boton de Cerrar. */}
           <LoadingButton
             color="secondary"
             loadingPosition="start"
@@ -200,7 +201,6 @@ const UpdateRoleModal = ({
           >
             <span>CERRAR</span>
           </LoadingButton>
-          {/* FIC: Boton de Guardar. */}
           <LoadingButton
             color="primary"
             loadingPosition="start"
@@ -217,4 +217,5 @@ const UpdateRoleModal = ({
     </Dialog>
   );
 };
+
 export default UpdateRoleModal;
