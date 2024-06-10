@@ -15,10 +15,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 const pages = [
   "INSTITUTOS",
-  "PRECIOS",
-  "ROLES",
-  "PROMOCIONES",
-  "NEGOCIOS",
 ];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 function ResponsiveAppBar() {
@@ -61,20 +57,8 @@ function ResponsiveAppBar() {
       case "":
         navigate("/");
         break;
-        case "INSTITUTOS":
+      case "INSTITUTOS":
         navigate("/institutos");
-        break;
-      case "PRECIOS":
-        navigate("/precios");
-        break;
-      case "ROLES":
-        navigate("/roles");
-        break;
-      case "PROMOCIONES":
-        navigate("/promociones");
-        break;
-      case "NEGOCIOS":
-        navigate("/negocios");
         break;
     }
   }, [myPages]);

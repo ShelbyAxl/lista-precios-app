@@ -1,19 +1,19 @@
 import { Box, Tabs, Tab } from "@mui/material";
 import React, { useState } from "react";
-const InstitutesTabs = ["Institutos", "Negocios"];
+const InstitutesTabs = ["Institutos", "Precios", "Roles", "Promociones", "Negocios"];
 
 //const InstitutesNavTab = ({currentRowInInstitutesTab, setCurrentNameTabInPrincipalTab, setBusinessTabInPrincipalTabIsSelected}) => {
 
-const InstitutesNavTab = ({currentRowInInstitutesTab, setCurrentNameTabInPrincipalTab}) => {
+const InstitutesNavTab = ({ currentRowInInstitutesTab, setCurrentNameTabInPrincipalTab }) => {
     //FIC: para saber cual es el numero de Tab seleccionado.
     const [currenTabIndex, setCurrentTabIndex] = useState(0);
     const handleChange = (e) => {
-       
+
         console.log("entro al handleChange", e.target.innerText.toUpperCase());
-       
+
         //FIC: actualizar el nombre de la pestaña seleccionada.
         setCurrentNameTabInPrincipalTab(e.target.innerText.toUpperCase());
-       
+
         //FIC: cada que realice un click en algun tap page
         //reiniciamos el valor del tap pase de business a false.
         //setBusinessTabInPrincipalTabIsSelected(false);
@@ -23,8 +23,17 @@ const InstitutesNavTab = ({currentRowInInstitutesTab, setCurrentNameTabInPrincip
             case "INSTITUTOS":
                 setCurrentTabIndex(0);
                 break;
-            case "NEGOCIOS":
+            case "PRECIOS":
                 setCurrentTabIndex(1);
+                break;
+            case "ROLES":
+                setCurrentTabIndex(2);
+                break;
+            case "PROMOCIONES":
+                setCurrentTabIndex(3);
+                break;
+            case "NEGOCIOS":
+                setCurrentTabIndex(4);
                 break;
         }
 
@@ -43,10 +52,10 @@ const InstitutesNavTab = ({currentRowInInstitutesTab, setCurrentNameTabInPrincip
                 variant={"fullWidth"}
                 onChange={handleChange}
                 aria-label="icon tabs example"
-                textColor="primary"
+                textColor="inherit"
             >
                 {InstitutesTabs.map((tab) => {
-                    return <Tab key={tab} label={tab} disabled ={currentRowInInstitutesTab === null}/>;
+                    return <Tab key={tab} label={tab} disabled={currentRowInInstitutesTab === null} />;
                 })}
             </Tabs>
         </Box>
