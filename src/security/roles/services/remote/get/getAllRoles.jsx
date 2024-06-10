@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export function getAllRoles(id) {
+  console.log(`${import.meta.env.VITE_GET_ALL}/${id}/roles`);
   return new Promise((resolve, reject) => {
     axios
       .get(`${import.meta.env.VITE_GET_ALL}/${id}/roles`)
@@ -21,7 +22,7 @@ export function getAllRoles(id) {
             "No se pudo realizar correctamente la petición <<getAllRoles - Roles>>",
             data
           );
-          reject(data); // Rechaza la promesa con la respuesta si no fue exitosa
+          reject([]); // Rechaza la promesa con la respuesta si no fue exitosa
         }
       })
       .catch((error) => {

@@ -34,7 +34,7 @@ const RolesTable = () => {
       const AllRolesData = await getAllRoles(instituto);
       console.log(AllRolesData);
       setRolesData(AllRolesData);
-      dispatch(SET_ID_ROLES(AllRolesData[0].Condicion));
+      AllRolesData.length != 0 && dispatch(SET_ID_ROLES(AllRolesData[0].Condicion));
       setLoadingTable(false);
     } catch (error) {
       console.error(

@@ -30,9 +30,9 @@ const PromocionesTable = () => {
 
   async function fetchData() {
     try {
-      const AllPromocionesData = await getAllPromociones();
+      const AllPromocionesData = await getAllPromociones(instituto);
       console.log(AllPromocionesData);
-      dispatch(SET_ID_PROMOCIONES(AllPromocionesData[0].IdTipoPromoOK));
+      AllPromocionesData.length != 0 && dispatch(SET_ID_PROMOCIONES(AllPromocionesData[0].IdTipoPromoOK));
       setPromocionesData(AllPromocionesData);
       setLoadingTable(false);
     } catch (error) {

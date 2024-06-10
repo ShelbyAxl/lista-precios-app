@@ -1,13 +1,13 @@
 import axios from "axios";
 
-export function getAllPromociones() {
+export function getAllPromociones(ids) {
+  console.log(`${import.meta.env.VITE_GET_ALL}/${ids}/promociones`);
   return new Promise((resolve, reject) => {
     axios
-      .get(import.meta.env.VITE_GET_ALL)
+      .get(`${import.meta.env.VITE_GET_ALL}/${ids}/promociones`)
       .then((response) => {
         const data = response.data; 
-        const promociones = data.flatMap((item) =>
-          item.promociones.map((promo) => {
+        const promociones = data.map((promo) => {
             return {
               DesPromo: promo.DesPromo,
               IdTipoPromoOK: promo.IdTipoPromoOK,
@@ -15,7 +15,7 @@ export function getAllPromociones() {
               FechaExpiraIni: promo.FechaExpiraIni,
               FechaExpiraFin: promo.FechaExpiraFin,
             };
-          })
+          }
         );
         console.log(data);
         if (response.status === 200) {

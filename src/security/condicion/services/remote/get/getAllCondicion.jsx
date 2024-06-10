@@ -1,22 +1,20 @@
 import axios from "axios";
 
-export function getAllCondicion() {
+export function getAllCondicion(ids) {
+  console.log(ids);
   return new Promise((resolve, reject) => {
     axios
-      .get(import.meta.env.VITE_GET_ALL)
+      .get(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}/condicion_det`)
       .then((response) => {
         const data = response.data;
-        const condicion = data.flatMap((item) =>
-          item.roles.flatMap((rol) => 
-          rol.condicion_det.map((condicion) => {
-            return {
-              IdTipoCondicionOK: condicion.IdTipoCondicionOK,
-              IdTipoOperadorOK: condicion.IdTipoOperadorOK,
-              Valor: condicion.Valor,
-              Secuecia: condicion.Secuecia,
-            };
-          })
-          )
+        const condicion = data.map((condicion) => {
+          return {
+            IdTipoCondicionOK: condicion.IdTipoCondicionOK,
+            IdTipoOperadorOK: condicion.IdTipoOperadorOK,
+            Valor: condicion.Valor,
+            Secuecia: condicion.Secuecia,
+          };
+        }
         );
         console.log(data)
         console.log(condicion);

@@ -28,7 +28,7 @@ const CondicionTable = () => {
 
   async function fetchData() {
     try {
-      const AllCondicionData = await getAllCondicion();
+      const AllCondicionData = await getAllCondicion([instituto, roles]);
       setCondicionData(AllCondicionData);
       setLoadingTable(false);
     } catch (error) {
