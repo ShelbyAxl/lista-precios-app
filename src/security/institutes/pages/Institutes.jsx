@@ -24,7 +24,6 @@ const [currentTabInPrincipalTab, setCurrentTabInPrincipalTab] = useState("INSTIT
       { currentTabInPrincipalTab === "PRECIOS" && <Precios /> }
       { currentTabInPrincipalTab === "ROLES" && <Roles /> }
       { currentTabInPrincipalTab === "PROMOCIONES" && <Promociones /> }
-      { currentTabInPrincipalTab === "NEGOCIOS" && <Negocios /> }
     </Box>
   );
 };
