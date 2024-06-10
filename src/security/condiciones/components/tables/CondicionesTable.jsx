@@ -12,6 +12,7 @@ import { getAllCondiciones } from "../../services/remote/get/getAllCondiciones";
 import { DeleteOneCondiciones } from "../../services/remote/delete/DeleteOneCondiciones";
 import AddCondicionesModal from "../modals/AddCondicionesModal";
 import UpdateCondicionesModal from "../modals/UpdateCondicionesModal";
+import DetailsCondicionesModal from "../modals/DetailsCondicionesModal";
 import { useSelector } from "react-redux";
 
 const CondicionessTable = () => {
@@ -25,8 +26,8 @@ const CondicionessTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddCondicionesShowModal, setAddCondicionesShowModal] = useState(false);
   const [selectedCondicionId, setSelectedCondicionId] = useState(null);
-  const [UpdateCondicionesShowModal, setUpdateCondicionesShowModal] =
-    useState(false);
+  const [UpdateCondicionesShowModal, setUpdateCondicionesShowModal] = useState(false);
+  const [DetailsCondicionesShowModal, setDetailsCondicionesShowModal] = useState(false)
 
   async function fetchData() {
     try {
@@ -167,7 +168,7 @@ const CondicionessTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedCondicionId !== null) {
-                  // Implement details logic here
+                  setDetailsCondicionesShowModal(true);
                 } else {
                   alert("Por favor, selecciona una fila para ver detalles.");
                 }
@@ -202,6 +203,12 @@ const CondicionessTable = () => {
           promotionId={promociones}
           selectedCondicionesId={selectedCondicionId}
           updateCondiciones={fetchData}
+        />
+      </Dialog>
+      <Dialog open={DetailsCondicionesShowModal}>
+        <DetailsCondicionesModal
+          condicionesId={selectedCondicionId}
+          onClose={() => setDetailsCondicionesShowModal(false)}
         />
       </Dialog>
     </Box>

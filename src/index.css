@@ -89,3 +89,13 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.details {
+  display: grid;
+  padding-left: 5em;
+  padding-right: 5em;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  justify-items: center;
+  gap: 2em;
+}

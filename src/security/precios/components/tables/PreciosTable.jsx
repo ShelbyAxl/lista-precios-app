@@ -13,6 +13,7 @@ import { getAllPrecios } from "../../services/remote/get/getAllPrecios";
 import AddPrecioModal from "../modals/AddPrecioModal";
 import UpdatePrecioModal from "../modals/UpdatePrecioModal";
 import { DeleteOnePrecio } from "../../services/remote/delete/DeleteOnePrecio";
+import DetailsPreciosModal from "../modals/DetailsPrecioModal";
 
 const PreciosTable = () => {
   const id = useSelector((state) => state.institutes.institutesDataArr);
@@ -22,6 +23,7 @@ const PreciosTable = () => {
   const [AddPrecioShowModal, setAddPrecioShowModal] = useState(false);
   const [selectedPrecioId, setSelectedPrecioId] = useState(null);
   const [UpdatePrecioShowModal, setUpdatePrecioShowModal] = useState(false);
+  const [DetailsPreciosShowModal, setDetailsPreciosShowModal] = useState(false)
 
   async function fetchData() {
     try {
@@ -124,7 +126,7 @@ const PreciosTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Detalles">
-            <IconButton>
+            <IconButton onClick={() => setDetailsPreciosShowModal(true)}>
               <InfoIcon />
             </IconButton>
           </Tooltip>
@@ -151,6 +153,12 @@ const PreciosTable = () => {
           PrecioId={selectedPrecioId}
           instituteId={id}
           updatePrecios={fetchData}
+        />
+      </Dialog>
+      <Dialog open={DetailsPreciosShowModal}>
+        <DetailsPreciosModal
+          preciosId={selectedPrecioId}
+          onClose={() => setDetailsPreciosShowModal(false)}
         />
       </Dialog>
     </Box>

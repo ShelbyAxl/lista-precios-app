@@ -12,6 +12,7 @@ import { getAllCondicion } from "../../services/remote/get/getAllCondicion";
 import { DeleteOneCondicion } from "../../services/remote/delete/DeleteOneCondicion";
 import AddCondicionModal from "../modals/AddCondicionModal";
 import UpdateCondicionModal from "../modals/UpdateCondicionModal";
+import DetailsCondicionModal from "../modals/DetailsCondicionModal";
 import { useSelector } from "react-redux";
 
 const CondicionTable = () => {
@@ -22,8 +23,8 @@ const CondicionTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddCondicionShowModal, setAddCondicionShowModal] = useState(false);
   const [selectedCondicionId, setSelectedCondicionId] = useState(null);
-  const [UpdateCondicionShowModal, setUpdateCondicionShowModal] =
-    useState(false);
+  const [UpdateCondicionShowModal, setUpdateCondicionShowModal] = useState(false);
+  const [DetailsCondicionShowModal, setDetailsCondicionShowModal] = useState(false)
 
   async function fetchData() {
     try {
@@ -44,6 +45,7 @@ const CondicionTable = () => {
 
   const handleRowClick = (row) => {
     setSelectedCondicionId(row.original.IdTipoCondicionOK);
+    console.log(row.original.IdTipoCondicionOK);
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -140,7 +142,7 @@ const CondicionTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedCondicionId !== null) {
-                  // Implement details logic here
+                  setDetailsCondicionShowModal(true)
                 } else {
                   alert("Por favor, selecciona una fila para ver detalles.");
                 }
@@ -173,6 +175,12 @@ const CondicionTable = () => {
           rolesId={roles}
           condicionId={selectedCondicionId}
           updateCondicion={fetchData}
+        />
+      </Dialog>
+      <Dialog open={DetailsCondicionShowModal}>
+        <DetailsCondicionModal
+          condicionId={selectedCondicionId}
+          onClose={() => setDetailsCondicionShowModal(false)}
         />
       </Dialog>
     </Box>

@@ -15,6 +15,7 @@ import { SET_ID_ROLES } from "../../../redux/slices/rolesSlice";
 //FIC: Modals
 import AddRolesModal from "../modals/AddRolesModal";
 import UpdateRolesModal from "../modals/UpdateRolesModal";
+import DetailsRolesModal from "../modals/DetailsRolesModal";
 //FIC: Columns Table Definition.
 //FIC: Table - FrontEnd.
 const RolesTable = () => {
@@ -25,8 +26,8 @@ const RolesTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddRoleShowModal, setAddRoleShowModal] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
-  const [UpdateInstituteShowModal, setUpdateInstituteShowModal] =
-    useState(false);
+  const [UpdateInstituteShowModal, setUpdateInstituteShowModal] = useState(false);
+  const [DetailsRolesShowModal, setDetailsRolesShowModal] = useState(false);
 
   async function fetchData() {
     try {
@@ -128,7 +129,7 @@ const RolesTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedRoleId !== null) {
-                  // Implement details logic here
+                  setDetailsRolesShowModal(true);
                 } else {
                   alert("Por favor, selecciona una fila para ver detalles.");
                 }
@@ -160,6 +161,12 @@ const RolesTable = () => {
           instituteId={instituto}
           RoleId={selectedRoleId}
           updateRoles={fetchData}
+        />
+      </Dialog>
+      <Dialog open={DetailsRolesShowModal}>
+        <DetailsRolesModal
+          rolesId={selectedRoleId}
+          onClose={() => setDetailsRolesShowModal(false)}
         />
       </Dialog>
     </Box>

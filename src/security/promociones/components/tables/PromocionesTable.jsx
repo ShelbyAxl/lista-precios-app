@@ -12,8 +12,9 @@ import { getAllPromociones } from "../../services/remote/get/getAllPromociones";
 import { DeleteOnePromocion } from "../../services/remote/delete/DeleteOnePromocion";
 import AddPromocionesModal from "../modals/AddPromocionesModal";
 import UpdatePromocionesModal from "../modals/UpdatePromocionesModal";
+import DetailsPromocionesModal from "../modals/DetailsPromocionesModal";
 import { useDispatch, useSelector } from "react-redux";
-import { SET_ID_PROMOCIONES } from "../../../redux/slices/promocionesSlice";
+import { SET_ID_PROMOCIONES } from "../../../redux/slices/promocionesSlice"
 
 const PromocionesTable = () => {
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
@@ -24,8 +25,8 @@ const PromocionesTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddPromocionesShowModal, setAddPromocionesShowModal] = useState(false);
   const [selectedPromocionId, setSelectedPromocionId] = useState(null);
-  const [UpdatePromocionesShowModal, setUpdatePromocionesShowModal] =
-    useState(false);
+  const [UpdatePromocionesShowModal, setUpdatePromocionesShowModal] = useState(false);
+  const [DetailsPromocionesShowModal, setDetailsPromocionesShowModal] = useState(false);
 
   async function fetchData() {
     try {
@@ -49,6 +50,7 @@ const PromocionesTable = () => {
   const handleRowClick = (row) => {
     setSelectedPromocionId(row.original.IdTipoPromoOK);
     console.log(row.original.IdTipoPromoOK);
+    dispatch(SET_ID_PROMOCIONES(row.original.IdTipoPromoOK));
     setRowSelection((prev) => ({
       [row.id]: !prev[row.id],
     }));
@@ -157,7 +159,7 @@ const PromocionesTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedPromocionId !== null) {
-                  // Implement details logic here
+                  setDetailsPromocionesShowModal(true)
                 } else {
                   alert("Por favor, selecciona una fila para ver detalles.");
                 }
@@ -189,6 +191,12 @@ const PromocionesTable = () => {
           PromocionesId={selectedPromocionId}
           instituteId={instituto}
           updatePromociones={fetchData}
+        />
+      </Dialog>
+      <Dialog open={DetailsPromocionesShowModal}>
+        <DetailsPromocionesModal
+          promocionesId={selectedPromocionId}
+          onClose={() => setDetailsPromocionesShowModal(false)}
         />
       </Dialog>
     </Box>

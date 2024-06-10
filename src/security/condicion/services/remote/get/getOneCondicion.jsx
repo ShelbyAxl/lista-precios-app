@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export function getOneCondicion(ids) {
+  console.log(ids)
   console.log(`${import.meta.env.VITE_GET_ALL}/${ids[0]}/roles/${ids[1]}/condicion_det/${ids[2]}`);
   return new Promise((resolve, reject) => {
     axios
@@ -9,6 +10,7 @@ export function getOneCondicion(ids) {
         const data = response.data;
         let condicion = {};
         data.map((condicion_det) => {
+          console.log(condicion_det.IdTipoCondicionOK)
           if (condicion_det.IdTipoCondicionOK == ids[2]) {
             condicion = {
                 IdTipoCondicionOK: condicion_det.IdTipoCondicionOK,
@@ -16,7 +18,7 @@ export function getOneCondicion(ids) {
                 Valor: condicion_det.Valor, 
                 Secuecia: condicion_det.Secuecia,
             };
-          } else return;
+          }
         });
         console.log(data)
         console.log(condicion)

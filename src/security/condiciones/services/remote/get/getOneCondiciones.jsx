@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export function getOneCondiciones(ids) {
+  console.log(ids)
   return new Promise((resolve, reject) => {
     axios
       .get(

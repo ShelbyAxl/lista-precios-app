@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import { Box, Stack, Tooltip, IconButton, Dialog, Snackbar } from "@mui/material";
+import { Box, Stack, Tooltip, IconButton, Dialog } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
@@ -14,6 +14,7 @@ import { SET_ID_INSTITUTES } from "../../../redux/slices/institutesSlice";
 import AddInstituteModal from "../modals/AddInstituteModal";
 import UpdateInstituteModal from "../modals/UpdateInstituteModal";
 import { DeleteOneInstitute } from "../../services/remote/delete/DeleteOneInstitute";
+import DetailsInstituteModal from "../modals/DetailsInstituteModal";
 
 const InstitutesTable = () => {
   const [loadingTable, setLoadingTable] = useState(true);
@@ -22,10 +23,8 @@ const InstitutesTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [addInstituteShowModal, setAddInstituteShowModal] = useState(false);
   const [updateInstitutesTrigger, setUpdateInstitutesTrigger] = useState(false);
-  const [DetailsInstituteShowModal, setDetailsInstituteShowModal] =
-    useState(false);
-  const [UpdateInstituteShowModal, setUpdateInstituteShowModal] =
-    useState(false);
+  const [DetailsInstituteShowModal, setDetailsInstituteShowModal] = useState(false);
+  const [UpdateInstituteShowModal, setUpdateInstituteShowModal] = useState(false);
   const dispatch = useDispatch();
 
   const updateInstitutes = async () => {
@@ -173,6 +172,12 @@ const InstitutesTable = () => {
           onClose={() => setUpdateInstituteShowModal(false)}
           instituteId={selectedInstituteId}
           updateInstitutes={updateInstitutes}
+        />
+      </Dialog>
+      <Dialog open={DetailsInstituteShowModal}>
+        <DetailsInstituteModal
+          instituteId={selectedInstituteId}
+          onClose={() => setDetailsInstituteShowModal(false)}
         />
       </Dialog>
     </Box>

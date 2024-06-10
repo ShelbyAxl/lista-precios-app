@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export function getOnePrecio(instituteId, precioId) {
+  console.log(instituteId,precioId);
   console.log(`${import.meta.env.VITE_GET_ALL}/${instituteId}/precios`, precioId);
   return new Promise((resolve, reject) => {
     axios
