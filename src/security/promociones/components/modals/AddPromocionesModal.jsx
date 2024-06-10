@@ -9,12 +9,7 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,21 +21,30 @@ import * as Yup from "yup";
 import { PromocionesValues } from "../../helpers/PromocionesValues";
 //FIC: Services
 import { AddOnePromociones } from "../../services/remote/post/AddOneInstitute";
+import { getPromociones } from "../../services/remote/get/getPromociones";
 import { useSelector } from "react-redux";
 const AddPromocionesModal = ({
   AddPromocionesShowModal,
   setAddPromocionesShowModal,
 }) => {
-
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
-  
+
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
-  
+  const [promocion, setPromocion] = useState([]);
+
   useEffect(() => {
-    console.log(instituto);
-    
+    async function fetchPromocion() {
+      try {
+        const promocion = await getPromociones();
+        setPromocion(promocion);
+      } catch (error) {
+        console.error("Error fetching promocion:", error);
+      }
+    }
+
+    fetchPromocion();
   }, []);
 
   //FIC: Definition Formik y Yup.
@@ -56,8 +60,13 @@ const AddPromocionesModal = ({
       IdTipoPromoOK: Yup.string().required("Campo requerido"),
       DesPromo: Yup.string().required("Campo requerido"),
       Formula: Yup.string().required("Campo requerido"),
-      FechaExpiraIni: Yup.string().required("Campo requerido"),
-      FechaExpiraFin: Yup.string().required("Campo requerido"),
+      FechaExpiraIni: Yup.date().required("Campo requerido"),
+      FechaExpiraFin: Yup.date()
+        .required("Campo requerido")
+        .min(
+          Yup.ref("FechaExpiraIni"),
+          "La fecha de fin no puede ser anterior a la fecha de inicio"
+        ),
     }),
     onSubmit: async (values) => {
       //FIC: mostramos el Loading.
@@ -113,7 +122,7 @@ const AddPromocionesModal = ({
         {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Agregar Nuevo Instituto</strong>
+            <strong>Agregar Nuevo Promocion</strong>
           </Typography>
         </DialogTitle>
         {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
@@ -122,18 +131,34 @@ const AddPromocionesModal = ({
           dividers
         >
           {/* FIC: Campos de captura o selección */}
-          <TextField
+          <Autocomplete
             id="IdTipoPromoOK"
-            label="IdTipoPromoOK*"
-            value={formik.values.IdTipoPromoOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoPromoOK &&
-              Boolean(formik.errors.IdTipoPromoOK)
-            }
-            helperText={
-              formik.touched.IdTipoPromoOK && formik.errors.IdTipoPromoOK
+            options={promocion}
+            getOptionLabel={(option) => option.IdTipoPromoOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdTipoPromoOK",
+                newValue ? newValue.IdTipoPromoOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdTipoPromoOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdTipoPromoOK &&
+                  Boolean(formik.errors.IdTipoPromoOK)
+                }
+                helperText={
+                  formik.touched.IdTipoPromoOK && formik.errors.IdTipoPromoOK
+                }
+              />
+            )}
+            value={
+              promocion.find(
+                (option) => option.IdTipoPromoOK === formik.values.IdTipoPromoOK
+              ) || null
             }
           />
           <TextField
@@ -142,13 +167,8 @@ const AddPromocionesModal = ({
             value={formik.values.DesPromo}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.DesPromo &&
-              Boolean(formik.errors.DesPromo)
-            }
-            helperText={
-              formik.touched.DesPromo && formik.errors.DesPromo
-            }
+            error={formik.touched.DesPromo && Boolean(formik.errors.DesPromo)}
+            helperText={formik.touched.DesPromo && formik.errors.DesPromo}
           />
           <TextField
             id="Formula"
@@ -156,19 +176,20 @@ const AddPromocionesModal = ({
             value={formik.values.Formula}
             /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
-            error={
-              formik.touched.Formula &&
-              Boolean(formik.errors.Formula)
-            }
-            helperText={
-              formik.touched.Formula && formik.errors.Formula
-            }
+            error={formik.touched.Formula && Boolean(formik.errors.Formula)}
+            helperText={formik.touched.Formula && formik.errors.Formula}
           />
           <TextField
             id="FechaExpiraIni"
-            label="FechaExpiraIni*"
+            label="Fecha Expira Ini*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraIni}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraIni", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraIni &&
@@ -180,9 +201,15 @@ const AddPromocionesModal = ({
           />
           <TextField
             id="FechaExpiraFin"
-            label="FechaExpiraFin*"
+            label="Fecha Expira Fin*"
+            type="date"
+            InputLabelProps={{
+              shrink: true,
+            }}
             value={formik.values.FechaExpiraFin}
-            /* onChange={formik.handleChange} */
+            onChange={(event) =>
+              formik.setFieldValue("FechaExpiraFin", event.target.value)
+            }
             {...commonTextFieldProps}
             error={
               formik.touched.FechaExpiraFin &&

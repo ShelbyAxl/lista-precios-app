@@ -9,10 +9,7 @@ import {
   DialogActions,
   Box,
   Alert,
-  FormControlLabel,
-  Checkbox,
-  Select,
-  MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import CloseIcon from "@mui/icons-material/Close";
@@ -25,87 +22,106 @@ import { CondicionesValues } from "../../helpers/CondicionesValues";
 //FIC: Services
 import { getOneCondiciones } from "../../services/remote/get/getOneCondiciones";
 import { UpdateOneCondiciones } from "../../services/remote/put/UpdateOneCondiciones";
+import { getCondiciones } from "../../services/remote/get/getCondiciones";
+import { useSelector } from "react-redux";
+
 const UpdateCondicionesModal = ({
   UpdateCondicionesShowModal,
   setUpdateCondicionesShowModal,
   instituteId,
   promotionId,
   selectedCondicionesId,
+  updateCondiciones,
 }) => {
   const ids = [instituteId, promotionId, selectedCondicionesId];
-  console.log("<<ids>>", ids);
   const [mensajeErrorAlert, setMensajeErrorAlert] = useState("");
   const [mensajeExitoAlert, setMensajeExitoAlert] = useState("");
   const [Loading, setLoading] = useState(false);
+  const [condicion, setCondicion] = useState([]);
 
   useEffect(() => {
+    async function fetchCondicion() {
+      try {
+        const condicion = await getCondiciones();
+        setCondicion(condicion);
+      } catch (error) {
+        console.error("Error fetching condicion:", error);
+      }
+    }
+
+    fetchCondicion();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCondicionesId) {
       getCondicionesData();
-  }, [instituteId]);
+    }
+  }, [selectedCondicionesId]);
+
   async function getCondicionesData() {
-    console.log("getCondicionesData is called");
     try {
-      const instituteData = await getOneCondiciones(ids);
-      console.log("Condiciones Data:", instituteData);
+      const CondicionesData = await getOneCondiciones(ids);
+      console.log("Fetched Condiciones Data:", CondicionesData);
       formik.setValues({
-        IdInstitutoOK: instituteId,
-        IdTipoPromoOK: promotionId,
-        IdEtiquetaOK: instituteData.IdEtiquetaOK,
-        Etiqueta: instituteData.Etiqueta,
-        valor: instituteData.valor,
-        IdComparaValor: instituteData.IdComparaValor,
-        IdOpComparaValores: instituteData.IdOpComparaValores,
-        IdOpLogicoEtiqueta: instituteData.IdOpLogicoEtiqueta,
+        IdEtiquetaOK: CondicionesData.IdEtiquetaOK,
+        Etiqueta: CondicionesData.Etiqueta,
+        valor: CondicionesData.valor, 
+        IdComparaValorOK: CondicionesData.IdComparaValorOK,
+        IdOpComparaValoresOK: CondicionesData.IdOpComparaValoresOK,
+        IdOpLogicoEtiquetaOK: CondicionesData.IdOpLogicoEtiquetaOK,
       });
     } catch (e) {
-      console.error("Error al obtener los datos del instituto:", e);
+      console.error("Error al obtener los datos de la condición:", e);
     }
   }
-  //FIC: Definition Formik y Yup.
+
   const formik = useFormik({
     initialValues: {
-        IdInstitutoOK: "",
-        IdTipoPromoOK: "",
-        IdEtiquetaOK: "",
-        Etiqueta: "",
-        IdOpComparaValores: "",
-        IdOpLogicoEtiqueta: "",
+      IdEtiquetaOK: "",
+      Etiqueta: "",
+      valor: "",
+      IdComparaValorOK: "",
+      IdOpComparaValoresOK: "",
+      IdOpLogicoEtiquetaOK: "",
     },
     validationSchema: Yup.object({
-        IdInstitutoOK: Yup.string().required("Campo requerido"),
-        IdTipoPromoOK: Yup.string().required("Campo requerido"),
-        IdEtiquetaOK: Yup.string().required("Campo requerido"),
-        Etiqueta: Yup.string().required("Campo requerido"),
-        IdOpComparaValores: Yup.string().required("Campo requerido"),
-        IdOpLogicoEtiqueta: Yup.string().required("Campo requerido"),
+      IdEtiquetaOK: Yup.string().required("Campo requerido"),
+      Etiqueta: Yup.string().required("Campo requerido"),
+      valor: Yup.string().required("Campo requerido"),
+      IdComparaValorOK: Yup.string().required("Campo requerido"),
+      IdOpComparaValoresOK: Yup.string().required("Campo requerido"),
+      IdOpLogicoEtiquetaOK: Yup.string().required("Campo requerido"),
     }),
     onSubmit: async (values) => {
-      console.log("FIC: entro al onSubmit");
       setLoading(true);
-      console.log(
-        "FIC: entro al onSubmit despues de hacer click en boton Guardar"
-      );
       setMensajeErrorAlert(null);
       setMensajeExitoAlert(null);
       try {
-        values = {
-            IdEtiquetaOK: values.IdEtiquetaOK,
-            Etiqueta: values.Etiqueta,
-            IdOpComparaValores: values.IdOpComparaValores,
-            IdOpLogicoEtiqueta: values.IdOpLogicoEtiqueta
-          };
-        const Condiciones = CondicionesValues(values);
-        console.log("<<Condiciones>>", Condiciones);
-        await UpdateOneCondiciones(ids, Condiciones);
+        const formattedValues = {
+          IdEtiquetaOK: values.IdEtiquetaOK,
+          Etiqueta: values.Etiqueta,
+          Valores: [
+            {
+              valor: values.valor,
+              IdComparaValorOK: values.IdComparaValorOK,
+            },
+          ],
+          IdOpComparaValoresOK: values.IdOpComparaValoresOK,
+          IdOpLogicoEtiquetaOK: values.IdOpLogicoEtiquetaOK,
+        };
+        await UpdateOneCondiciones(ids, formattedValues);
         setMensajeExitoAlert(
-          "Instituto fue actualizado y guardado Correctamente"
+          "Condición fue actualizada y guardada correctamente"
         );
+        updateCondiciones();
       } catch (e) {
         setMensajeExitoAlert(null);
-        setMensajeErrorAlert("No se pudo actualizar el Instituto");
+        setMensajeErrorAlert("No se pudo actualizar la condición");
       }
       setLoading(false);
     },
   });
+
   const commonTextFieldProps = {
     onChange: formik.handleChange,
     onBlur: formik.handleBlur,
@@ -113,6 +129,7 @@ const UpdateCondicionesModal = ({
     margin: "dense",
     disabled: !!mensajeExitoAlert,
   };
+
   return (
     <Dialog
       open={UpdateCondicionesShowModal}
@@ -120,104 +137,162 @@ const UpdateCondicionesModal = ({
       fullWidth
     >
       <form onSubmit={formik.handleSubmit}>
-        {/* FIC: Aqui va el Titulo de la Modal */}
         <DialogTitle>
           <Typography component="h6">
-            <strong>Actualizar Instituto</strong>
+            <strong>Actualizar Condición</strong>
           </Typography>
         </DialogTitle>
-        {/* FIC: Aqui va un tipo de control por cada Propiedad de Institutos */}
         <DialogContent
           sx={{ display: "flex", flexDirection: "column" }}
           dividers
         >
-          {/* FIC: Campos de captura o selección */}
-          <TextField
-            id="IdInstitutoOK"
-            label="IdInstitutoOK*"
-            value={formik.values.IdInstitutoOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdInstitutoOK &&
-              Boolean(formik.errors.IdInstitutoOK)
-            }
-            helperText={
-              formik.touched.IdInstitutoOK && formik.errors.IdInstitutoOK
-            }
-          />
-          <TextField
-            id="IdTipoPromoOK"
-            label="IdTipoPromoOK*"
-            value={formik.values.IdTipoPromoOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdTipoPromoOK &&
-              Boolean(formik.errors.IdTipoPromoOK)
-            }
-            helperText={
-              formik.touched.IdTipoPromoOK && formik.errors.IdTipoPromoOK
-            }
-          />
-          <TextField
+          <Autocomplete
             id="IdEtiquetaOK"
-            label="IdEtiquetaOK*"
-            value={formik.values.IdEtiquetaOK}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdEtiquetaOK && Boolean(formik.errors.IdEtiquetaOK)
-            }
-            helperText={
-              formik.touched.IdEtiquetaOK && formik.errors.IdEtiquetaOK
+            options={condicion}
+            getOptionLabel={(option) => option.IdEtiquetaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdEtiquetaOK",
+                newValue ? newValue.IdEtiquetaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdEtiquetaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdEtiquetaOK &&
+                  Boolean(formik.errors.IdEtiquetaOK)
+                }
+                helperText={
+                  formik.touched.IdEtiquetaOK && formik.errors.IdEtiquetaOK
+                }
+              />
+            )}
+            value={
+              condicion.find(
+                (option) => option.IdEtiquetaOK === formik.values.IdEtiquetaOK
+              ) || null
             }
           />
           <TextField
             id="Etiqueta"
             label="Etiqueta*"
             value={formik.values.Etiqueta}
-            /* onChange={formik.handleChange} */
             {...commonTextFieldProps}
             error={formik.touched.Etiqueta && Boolean(formik.errors.Etiqueta)}
             helperText={formik.touched.Etiqueta && formik.errors.Etiqueta}
           />
           <TextField
-            id="IdOpComparaValores"
-            label="IdOpComparaValores*"
-            value={formik.values.IdOpComparaValores}
-            /* onChange={formik.handleChange} */
+            id="valor"
+            label="valor*"
+            value={formik.values.valor}
             {...commonTextFieldProps}
-            error={
-              formik.touched.IdOpComparaValores &&
-              Boolean(formik.errors.IdOpComparaValores)
-            }
-            helperText={
-              formik.touched.IdOpComparaValores &&
-              formik.errors.IdOpComparaValores
+            error={formik.touched.valor && Boolean(formik.errors.valor)}
+            helperText={formik.touched.valor && formik.errors.valor}
+          />
+          <Autocomplete
+            id="IdComparaValorOK"
+            options={condicion}
+            getOptionLabel={(option) => option.IdComparaValorOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdComparaValorOK",
+                newValue ? newValue.IdComparaValorOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdComparaValorOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdComparaValorOK &&
+                  Boolean(formik.errors.IdComparaValorOK)
+                }
+                helperText={
+                  formik.touched.IdComparaValorOK &&
+                  formik.errors.IdComparaValorOK
+                }
+              />
+            )}
+            value={
+              condicion.find(
+                (option) =>
+                  option.IdComparaValorOK === formik.values.IdComparaValorOK
+              ) || null
             }
           />
-          <TextField
-            id="IdOpLogicoEtiqueta"
-            label="IdOpLogicoEtiqueta*"
-            value={formik.values.IdOpLogicoEtiqueta}
-            /* onChange={formik.handleChange} */
-            {...commonTextFieldProps}
-            error={
-              formik.touched.IdOpLogicoEtiqueta &&
-              Boolean(formik.errors.IdOpLogicoEtiqueta)
+          <Autocomplete
+            id="IdOpComparaValoresOK"
+            options={condicion}
+            getOptionLabel={(option) => option.IdOpComparaValoresOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdOpComparaValoresOK",
+                newValue ? newValue.IdOpComparaValoresOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdOpComparaValoresOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdOpComparaValoresOK &&
+                  Boolean(formik.errors.IdOpComparaValoresOK)
+                }
+                helperText={
+                  formik.touched.IdOpComparaValoresOK &&
+                  formik.errors.IdOpComparaValoresOK
+                }
+              />
+            )}
+            value={
+              condicion.find(
+                (option) =>
+                  option.IdOpComparaValoresOK ===
+                  formik.values.IdOpComparaValoresOK
+              ) || null
             }
-            helperText={
-              formik.touched.IdOpLogicoEtiqueta &&
-              formik.errors.IdOpLogicoEtiqueta
+          />
+          <Autocomplete
+            id="IdOpLogicoEtiquetaOK"
+            options={condicion}
+            getOptionLabel={(option) => option.IdOpLogicoEtiquetaOK}
+            onChange={(event, newValue) => {
+              formik.setFieldValue(
+                "IdOpLogicoEtiquetaOK",
+                newValue ? newValue.IdOpLogicoEtiquetaOK : ""
+              );
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="IdOpLogicoEtiquetaOK*"
+                {...commonTextFieldProps}
+                error={
+                  formik.touched.IdOpLogicoEtiquetaOK &&
+                  Boolean(formik.errors.IdOpLogicoEtiquetaOK)
+                }
+                helperText={
+                  formik.touched.IdOpLogicoEtiquetaOK &&
+                  formik.errors.IdOpLogicoEtiquetaOK
+                }
+              />
+            )}
+            value={
+              condicion.find(
+                (option) =>
+                  option.IdOpLogicoEtiquetaOK ===
+                  formik.values.IdOpLogicoEtiquetaOK
+              ) || null
             }
-          />  
+          />
         </DialogContent>
-        {/* FIC: Aqui van las acciones del usuario como son las alertas o botones */}
         <DialogActions sx={{ display: "flex", flexDirection: "row" }}>
           <Box m="auto">
-            {console.log("mensajeExitoAlert", mensajeExitoAlert)}
-            {console.log("mensajeErrorAlert", mensajeErrorAlert)}
             {mensajeErrorAlert && (
               <Alert severity="error">
                 <b>¡ERROR!</b> ─ {mensajeErrorAlert}
@@ -229,7 +304,6 @@ const UpdateCondicionesModal = ({
               </Alert>
             )}
           </Box>
-          {/* FIC: Boton de Cerrar. */}
           <LoadingButton
             color="secondary"
             loadingPosition="start"
@@ -239,7 +313,6 @@ const UpdateCondicionesModal = ({
           >
             <span>CERRAR</span>
           </LoadingButton>
-          {/* FIC: Boton de Guardar. */}
           <LoadingButton
             color="primary"
             loadingPosition="start"
@@ -256,4 +329,5 @@ const UpdateCondicionesModal = ({
     </Dialog>
   );
 };
+
 export default UpdateCondicionesModal;

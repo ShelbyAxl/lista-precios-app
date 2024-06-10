@@ -9,38 +9,46 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllCondiciones } from "../../services/remote/get/getAllCondiciones";
+import { DeleteOneCondiciones } from "../../services/remote/delete/DeleteOneCondiciones";
 import AddCondicionesModal from "../modals/AddCondicionesModal";
 import UpdateCondicionesModal from "../modals/UpdateCondicionesModal";
 import { useSelector } from "react-redux";
 
 const CondicionessTable = () => {
-
-  const instituto  = useSelector((state) => state.institutes.institutesDataArr);
-  const promociones = useSelector((state) => state.promociones.PromocionesDataArr);
+  const instituto = useSelector((state) => state.institutes.institutesDataArr);
+  const promociones = useSelector(
+    (state) => state.promociones.PromocionesDataArr
+  );
   const ids = [instituto, promociones];
-
   const [loadingTable, setLoadingTable] = useState(true);
   const [CondicionessData, setCondicionessData] = useState([]);
   const [rowSelection, setRowSelection] = useState({});
   const [AddCondicionesShowModal, setAddCondicionesShowModal] = useState(false);
   const [selectedCondicionId, setSelectedCondicionId] = useState(null);
-  const [UpdateCondicionesShowModal, setUpdateCondicionesShowModal] = useState(false);
+  const [UpdateCondicionesShowModal, setUpdateCondicionesShowModal] =
+    useState(false);
+
+  async function fetchData() {
+    try {
+      const AllCondicionessData = await getAllCondiciones(ids);
+      setCondicionessData(AllCondicionessData);
+      setLoadingTable(false);
+    } catch (error) {
+      console.error(
+        "Error al obtener las condiciones en useEffect de CondicionessTable:",
+        error
+      );
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const AllCondicionessData = await getAllCondiciones(ids);
-        setCondicionessData(AllCondicionessData);
-        setLoadingTable(false);
-      } catch (error) {
-        console.error(
-          "Error al obtener las condiciones en useEffect de CondicionessTable:",
-          error
-        );
-      }
-    }
     fetchData();
-  }, []);
+  }, [
+    instituto,
+    promociones,
+    AddCondicionesShowModal,
+    UpdateCondicionesShowModal,
+  ]);
 
   const handleRowClick = (row) => {
     setSelectedCondicionId(row.original.IdEtiquetaOK);
@@ -50,16 +58,38 @@ const CondicionessTable = () => {
     }));
   };
 
-  const CondicionessColumns = useMemo(
+  const CondicionesColumns = useMemo(
     () => [
-      { Cell: ({ row }) => instituto, accessorKey: "instituto", header: "IdInstitutoOK" },
-      { Cell: ({ row }) => promociones, accessorKey: "promociones", header: "IdPromocionOK" },
-      { accessorKey: "IdEtiquetaOK", header: "ID PROMOCION", size: 150 },
-      { accessorKey: "Etiqueta", header: "ID ETIQUETA", size: 150 },
-      { accessorKey: "IdOpComparaValores", header: "ID COMPARADOR", size: 150 },
+      { accessorKey: "IdEtiquetaOK", header: "IDETIQUETA", size: 150 },
+      { accessorKey: "Etiqueta", header: "ETIQUETA", size: 150 },
       {
-        accessorKey: "IdOpLogicoEtiqueta",
-        header: "COMPARA VALORES",
+        accessor: "Valores[0].valor",
+        header: "VALOR",
+        size: 150,
+        Cell: ({ row }) => {
+          return row.original.Valores.length > 0
+            ? row.original.Valores[0].valor
+            : null;
+        },
+      },
+      {
+        accessor: "Valores[0].IdComparaValorOK",
+        header: "IDCOMPARAVALOR",
+        size: 150,
+        Cell: ({ row }) => {
+          return row.original.Valores.length > 0
+            ? row.original.Valores[0].IdComparaValorOK
+            : null;
+        },
+      },
+      {
+        accessorKey: "IdOpComparaValoresOK",
+        header: "IDOPCOMPARAVALORES",
+        size: 150,
+      },
+      {
+        accessorKey: "IdOpLogicoEtiquetaOK",
+        header: "IDOPLOGICOETIQUETA",
         size: 150,
       },
     ],
@@ -67,7 +97,7 @@ const CondicionessTable = () => {
   );
 
   const table = useMaterialReactTable({
-    columns: CondicionessColumns,
+    columns: CondicionesColumns,
     data: CondicionessData,
     getRowId: (row) => row._id,
     muiTableBodyRowProps: ({ row }) => ({
@@ -92,7 +122,7 @@ const CondicionessTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedCondicionId !== null) {
-                  setUpdateCondicionesShowModal(true)
+                  setUpdateCondicionesShowModal(true);
                 } else {
                   alert(
                     "Por favor, seleccione una condición antes de editarla"
@@ -104,11 +134,32 @@ const CondicionessTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton  oonClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
-                DeleteOneCondiciones(selectedCondicionId);
-              }
-            }}>
+            <IconButton
+              onClick={async () => {
+                if (selectedCondicionId) {
+                  if (
+                    window.confirm("¿Estás seguro de que deseas eliminarlo?")
+                  ) {
+                    try {
+                      const response = await DeleteOneCondiciones([
+                        instituto,
+                        promociones,
+                        selectedCondicionId,
+                      ]);
+                      console.log("Condición eliminada con éxito", response);
+                      // Actualizar la tabla después de eliminar
+                      await fetchData();
+                      alert("Condición eliminada con éxito");
+                    } catch (error) {
+                      console.error("Error al eliminar la condición:", error);
+                      alert("Error al eliminar la condición");
+                    }
+                  }
+                } else {
+                  alert("Por favor, selecciona una condición para eliminar.");
+                }
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -150,8 +201,9 @@ const CondicionessTable = () => {
           instituteId={instituto}
           promotionId={promociones}
           selectedCondicionesId={selectedCondicionId}
+          updateCondiciones={fetchData}
         />
-        </Dialog>
+      </Dialog>
     </Box>
   );
 };

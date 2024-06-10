@@ -1,11 +1,13 @@
 import axios from "axios";
 
-export function getCondiciones() {
+export function getPromociones() {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_CONDICIONES}`)
+      .get(`${import.meta.env.VITE_PROMO}`)
       .then((response) => {
         const data = response.data;
+        console.log(data);
+        // console.log(condiciones);
         if (response.status === 200) {
           if (data.length === 0) {
             console.info(

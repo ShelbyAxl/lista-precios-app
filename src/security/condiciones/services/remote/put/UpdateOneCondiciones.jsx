@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function UpdateOneCondiciones(ids, condicion) {
   console.log(
-    `${import.meta.env.VITE_GET_ALL}/${ids[0]}/promociones/${ids[1]}/condciones/${
+    `${import.meta.env.VITE_GET_ALL}/${ids[0]}/promociones/${ids[1]}/condiciones/${
       ids[2]
     }`
   );

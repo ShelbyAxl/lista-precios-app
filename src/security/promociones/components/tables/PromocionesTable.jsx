@@ -9,13 +9,13 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { getAllPromociones } from "../../services/remote/get/getAllPromociones";
+import { DeleteOnePromocion } from "../../services/remote/delete/DeleteOnePromocion";
 import AddPromocionesModal from "../modals/AddPromocionesModal";
 import UpdatePromocionesModal from "../modals/UpdatePromocionesModal";
 import { useDispatch, useSelector } from "react-redux";
 import { SET_ID_PROMOCIONES } from "../../../redux/slices/promocionesSlice";
 
 const PromocionesTable = () => {
-
   const instituto = useSelector((state) => state.institutes.institutesDataArr);
   const dispatch = useDispatch();
 
@@ -24,27 +24,27 @@ const PromocionesTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const [AddPromocionesShowModal, setAddPromocionesShowModal] = useState(false);
   const [selectedPromocionId, setSelectedPromocionId] = useState(null);
-
   const [UpdatePromocionesShowModal, setUpdatePromocionesShowModal] =
     useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const AllPromocionesData = await getAllPromociones();
-        console.log(AllPromocionesData);
-        dispatch(SET_ID_PROMOCIONES(AllPromocionesData[0].IdTipoPromoOK));
-        setPromocionesData(AllPromocionesData);
-        setLoadingTable(false);
-      } catch (error) {
-        console.error(
-          "Error al obtener las promociones en useEffect de PromocionesTable:",
-          error
-        );
-      }
+  async function fetchData() {
+    try {
+      const AllPromocionesData = await getAllPromociones();
+      console.log(AllPromocionesData);
+      dispatch(SET_ID_PROMOCIONES(AllPromocionesData[0].IdTipoPromoOK));
+      setPromocionesData(AllPromocionesData);
+      setLoadingTable(false);
+    } catch (error) {
+      console.error(
+        "Error al obtener las promociones en useEffect de PromocionesTable:",
+        error
+      );
     }
+  }
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [instituto, AddPromocionesShowModal, UpdatePromocionesShowModal]);
 
   const handleRowClick = (row) => {
     setSelectedPromocionId(row.original.IdTipoPromoOK);
@@ -61,24 +61,25 @@ const PromocionesTable = () => {
         header: "ID TIPO PROMOCION OK",
         size: 150,
       },
-      { 
-        accessorKey: "DesPromo", 
-        header: "DESCUENTO DE PROMOCION", 
-        size: 150 
+      {
+        accessorKey: "DesPromo",
+        header: "DESCUENTO DE PROMOCION",
+        size: 150,
       },
-      { 
-        accessorKey: "Formula", 
-        header: "FORMULA", 
-        size: 150 
+      {
+        accessorKey: "Formula",
+        header: "FORMULA",
+        size: 150,
       },
-      { 
-        accessorKey: "FechaExpiraIni", 
-        header: "FECHA INICIO", 
-        size: 150 
-      },{ 
-        accessorKey: "FechaExpiraFin", 
-        header: "FECHA FIN", 
-        size: 150 
+      {
+        accessorKey: "FechaExpiraIni",
+        header: "FECHA INICIO",
+        size: 150,
+      },
+      {
+        accessorKey: "FechaExpiraFin",
+        header: "FECHA FIN",
+        size: 150,
       },
     ],
     []
@@ -93,7 +94,9 @@ const PromocionesTable = () => {
       selected: !!rowSelection[row.IdTipoPromoOK],
       sx: {
         cursor: "pointer",
-        backgroundColor: rowSelection[row.IdTipoPromoOK] ? "lightgreen" : "white",
+        backgroundColor: rowSelection[row.IdTipoPromoOK]
+          ? "lightgreen"
+          : "white",
       },
     }),
     onRowSelectionChange: setRowSelection,
@@ -110,7 +113,7 @@ const PromocionesTable = () => {
             <IconButton
               onClick={() => {
                 if (selectedPromocionId !== null) {
-                  setUpdatePromocionesShowModal(true)
+                  setUpdatePromocionesShowModal(true);
                 } else {
                   alert(
                     "Por favor, seleccione una promoción antes de editarla"
@@ -122,11 +125,31 @@ const PromocionesTable = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton  onClick={() => {
-              if (window.confirm("¿Estás seguro de que deseas eliminarlo?")) {
-                DeleteOnePromociones(selectedPromocionId);
-              }
-            }}>
+            <IconButton
+              onClick={async () => {
+                if (selectedPromocionId) {
+                  if (
+                    window.confirm("¿Estás seguro de que deseas eliminarlo?")
+                  ) {
+                    try {
+                      const response = await DeleteOnePromocion([
+                        instituto,
+                        selectedPromocionId,
+                      ]);
+                      console.log("Promoción eliminada con éxito", response);
+                      // Actualizar la tabla después de eliminar
+                      await fetchData();
+                      alert("Promoción eliminada con éxito");
+                    } catch (error) {
+                      console.error("Error al eliminar la promoción:", error);
+                      alert("Error al eliminar la promoción");
+                    }
+                  }
+                } else {
+                  alert("Por favor, selecciona una promoción para eliminar.");
+                }
+              }}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -165,8 +188,9 @@ const PromocionesTable = () => {
           onClose={() => setUpdatePromocionesShowModal(false)}
           PromocionesId={selectedPromocionId}
           instituteId={instituto}
+          updatePromociones={fetchData}
         />
-        </Dialog>
+      </Dialog>
     </Box>
   );
 };

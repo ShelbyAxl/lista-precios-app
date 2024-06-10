@@ -7,8 +7,8 @@ export const CondicionesValues = (values) => {
     (Institute.IdEtiquetaOK = values.IdEtiquetaOK);
     (Institute.Etiqueta = values.Etiqueta);
     (Institute.Valores = values.Valores);
-    (Institute.IdOpComparaValores = values.IdOpComparaValores);
-    (Institute.IdOpLogicoEtiqueta = values.IdOpLogicoEtiqueta);
+    (Institute.IdOpComparaValoresOK = values.IdOpComparaValoresOK);
+    (Institute.IdOpLogicoEtiquetaOK = values.IdOpLogicoEtiquetaOK);
 
   return Institute;
 };
